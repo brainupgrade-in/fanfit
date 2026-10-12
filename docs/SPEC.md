@@ -65,15 +65,15 @@ Base URL `https://hackathon.api.qloo.com`, header `X-Api-Key`. Affinity is read 
 Age bands come from the documented set: `24_and_younger`, `25_to_29`, `30_to_34`, `35_to_44`, `45_to_54`, `55_and_older`.
 
 ## 5. Agent design
-### 5.1 Loop
-An LLM tool-calling loop with these tools:
-- Qloo wrappers: `resolve_entity`, `resolve_tags`, `find_partners`, `audience_geo`, `audience_demographics`, `trend`;
-- `build_card`;
-- `write_claims`;
-- `draft_pitch`.
-
-The agent may retry an ambiguous resolution, but it must pass the resolved ids back to the UI for confirmation before calling `find_partners`.
-Limits: at most 12 tool calls per brief, and at most 8 cards.
+### 5.1 Where the agent loop is (revised 2026-10-13 during the build)
+- **Resolution is the agent loop.** An LLM tool-calling loop (`search_brand`, `search_tags`, `finish`) turns a free-text brief into Qloo ids.
+  It retries short variants when a search misses, and picks between ambiguous matches.
+  `finish` accepts **only ids the agent actually received from Qloo** in that run, and the UI then asks the user to confirm.
+  Limit: 12 tool calls.
+- **Shortlisting is fixed code, not LLM-driven.** It runs the insights call per partner type, then the heatmap, demographics and trending calls for the top 8.
+  This keeps the demo predictable and the number of Qloo calls bounded.
+- **The LLM comes back for** `write_claims` (validated, §5.3) and `draft_pitch`.
+- **Presets skip the agent** and use structured briefs, so they run without an LLM.
 
 ### 5.2 The QlooClient interface
 One interface with two implementations:
@@ -156,7 +156,7 @@ Run `scripts/datacheck.py` with the key, over 5 brands from different categories
 - [ ] The live public URL runs flow A end to end, with no login, for all 3 presets.
 - [ ] Each preset finishes in **under 20 s** from a cold cache, and in under 5 s in replay mode.
 - [ ] Every "why" claim shown has at least one valid evidence id. A validator unit test passes on the preset outputs, plus negative cases (an invented tag, a missing id).
-- [ ] A unit test shows no Qloo request carries parameters outside the allowlist, or any value over 40 characters.
+- [ ] A unit test shows no Qloo request carries parameters outside the allowlist. Free-text params (`query`, `filter.query`, `filter.location.query`) must be 40 characters or fewer; id params must match the id/urn pattern; enums must be from the fixed lists.
 - [ ] The Qloo vs. LLM-only panel works on all presets and shows at least one partner only Qloo found in each.
 - [ ] The demo works with `QLOO_MODE=replay` and no `QLOO_API_KEY`, and with either LLM provider.
 - [ ] The UI handles each §6 state (each covered by a test with the fixture client).
@@ -188,6 +188,7 @@ Run `scripts/datacheck.py` with the key, over 5 brands from different categories
   The README makes clear that Qloo is the core. The Nebius requirement must not make the Qloo demo fragile (fallback provider).
 
 ## 13. Open items
+- Heatmap `filter.location.query` limits results to *within* the market (harness semantics). Decide on live data whether the card should show national regions (no filter) or neighbourhoods within the target market.
 - The exact parameter name of `/v2/tags` for text search, and the response fields. Verify with the key.
 - Whether to redistribute Qloo responses as fixtures (ask in Discord).
 

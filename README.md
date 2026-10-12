@@ -9,8 +9,13 @@ Entry for the [Qloo Agentic Hackathon](https://qloo.devpost.com/) ("Agents, but 
 ```bash
 uv sync
 cp .env.example .env && chmod 600 .env   # add QLOO_API_KEY
-uv run scripts/smoke.py "Agatha Christie"
+uv run scripts/smoke.py "Agatha Christie"     # live API check
+uv run pytest -q                               # tests (fixture mode, no keys needed)
+uv run python -m fanfit --preset cold-brew     # fit-card JSON; presets: cold-brew, trail, tour
 ```
+
+`QLOO_MODE=fixture` (default, fictional data in `fixtures/world.json`) | `live` (needs `QLOO_API_KEY`, caches to `.qloo-cache/`) | `replay` (cache only).
+Set `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL` (any OpenAI-compatible endpoint) to enable the free-text agent (`--text`) and the "why this fit" claims.
 
 ## How Qloo is used
 

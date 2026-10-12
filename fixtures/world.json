@@ -1,0 +1,2387 @@
+{
+ "_note": "Synthetic, fictional data for fixture mode. Not Qloo data.",
+ "tags": [
+  {
+   "id": "urn:tag:keyword:fanfit:specialty_coffee",
+   "name": "specialty coffee",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:cold_brew",
+   "name": "cold brew",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:genre:music:fanfit:indie_folk",
+   "name": "indie folk",
+   "type": "urn:tag:genre:music"
+  },
+  {
+   "id": "urn:tag:genre:music:fanfit:lo-fi",
+   "name": "lo-fi",
+   "type": "urn:tag:genre:music"
+  },
+  {
+   "id": "urn:tag:genre:music:fanfit:hip_hop",
+   "name": "hip hop",
+   "type": "urn:tag:genre:music"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:trail_running",
+   "name": "trail running",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:outdoor_adventure",
+   "name": "outdoor adventure",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:hot_sauce",
+   "name": "hot sauce",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:street_food",
+   "name": "street food",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:genre:media:fanfit:comedy",
+   "name": "comedy",
+   "type": "urn:tag:genre:media"
+  },
+  {
+   "id": "urn:tag:genre:media:fanfit:true_crime",
+   "name": "true crime",
+   "type": "urn:tag:genre:media"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:design",
+   "name": "design",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:sustainability",
+   "name": "sustainability",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:skateboarding",
+   "name": "skateboarding",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:genre:music:fanfit:synthwave",
+   "name": "synthwave",
+   "type": "urn:tag:genre:music"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:productivity",
+   "name": "productivity",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:craft_beer",
+   "name": "craft beer",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:vinyl_records",
+   "name": "vinyl records",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:keyword:fanfit:camping",
+   "name": "camping",
+   "type": "urn:tag:keyword"
+  },
+  {
+   "id": "urn:tag:genre:music:fanfit:latin_pop",
+   "name": "latin pop",
+   "type": "urn:tag:genre:music"
+  }
+ ],
+ "entities": [
+  {
+   "entity_id": "B5F4EF0C-519C-55DB-880E-99DA1E1D8692",
+   "name": "Northbound Cold Brew",
+   "type": "urn:entity:brand",
+   "popularity": 0.869,
+   "tags": [
+    "urn:tag:keyword:fanfit:specialty_coffee",
+    "urn:tag:keyword:fanfit:cold_brew",
+    "urn:tag:genre:music:fanfit:indie_folk",
+    "urn:tag:keyword:fanfit:design",
+    "urn:tag:keyword:fanfit:sustainability"
+   ],
+   "regions": {
+    "Portland": 0.219,
+    "Seattle": 0.505,
+    "Austin": 0.027,
+    "Miami": 0.199,
+    "Atlanta": 0.65
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.266,
+     "25_to_29": 0.0,
+     "30_to_34": 0.049,
+     "35_to_44": 0.032,
+     "45_to_54": 0.353,
+     "55_and_older": 0.298
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 14
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 6
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -6
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 8
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 17
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -3
+    }
+   ]
+  },
+  {
+   "entity_id": "A20D42DB-D516-5DA5-AA14-12ABB82AD580",
+   "name": "Ridgeline Trail Co",
+   "type": "urn:entity:brand",
+   "popularity": 0.918,
+   "tags": [
+    "urn:tag:keyword:fanfit:trail_running",
+    "urn:tag:keyword:fanfit:outdoor_adventure",
+    "urn:tag:keyword:fanfit:camping",
+    "urn:tag:keyword:fanfit:sustainability",
+    "urn:tag:keyword:fanfit:craft_beer"
+   ],
+   "regions": {
+    "Chicago": 0.359,
+    "Portland": 0.344,
+    "Atlanta": 0.265,
+    "Brooklyn": 0.043,
+    "Austin": 0.459
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.339,
+     "25_to_29": 0.0,
+     "30_to_34": 0.336,
+     "35_to_44": 0.252,
+     "45_to_54": 0.06,
+     "55_and_older": 0.013
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -13
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 4
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -15
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 15
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -2
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 20
+    }
+   ]
+  },
+  {
+   "entity_id": "23E79EDF-253B-5C0F-88CD-7A4E572452D3",
+   "name": "Ember & Ash Hot Sauce",
+   "type": "urn:entity:brand",
+   "popularity": 0.417,
+   "tags": [
+    "urn:tag:keyword:fanfit:hot_sauce",
+    "urn:tag:keyword:fanfit:street_food",
+    "urn:tag:genre:music:fanfit:hip_hop",
+    "urn:tag:genre:media:fanfit:comedy",
+    "urn:tag:keyword:fanfit:craft_beer"
+   ],
+   "regions": {
+    "Portland": 0.453,
+    "Brooklyn": 0.834,
+    "Nashville": 0.163,
+    "Atlanta": 0.355,
+    "Denver": 0.67
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.19,
+     "25_to_29": 0.37,
+     "30_to_34": 0.166,
+     "35_to_44": 0.247,
+     "45_to_54": 0.001,
+     "55_and_older": 0.026
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 24
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 23
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 21
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -16
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 18
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 20
+    }
+   ]
+  },
+  {
+   "entity_id": "27FE7E27-E459-5A48-A98B-F5CC56739A23",
+   "name": "Vantage Audio",
+   "type": "urn:entity:brand",
+   "popularity": 0.618,
+   "tags": [
+    "urn:tag:keyword:fanfit:vinyl_records",
+    "urn:tag:genre:music:fanfit:synthwave",
+    "urn:tag:genre:music:fanfit:hip_hop",
+    "urn:tag:keyword:fanfit:design",
+    "urn:tag:genre:music:fanfit:latin_pop"
+   ],
+   "regions": {
+    "Chicago": 0.805,
+    "Austin": 0.401,
+    "Brooklyn": 0.066,
+    "Seattle": 0.913,
+    "Atlanta": 0.567
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.014,
+     "25_to_29": 0.251,
+     "30_to_34": 0.013,
+     "35_to_44": 0.068,
+     "45_to_54": 0.462,
+     "55_and_older": 0.193
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 25
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 0
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -7
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 21
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 11
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 5
+    }
+   ]
+  },
+  {
+   "entity_id": "23FE5D66-5D4A-5D91-86A3-69D169BB97CD",
+   "name": "The Low Pines",
+   "type": "urn:entity:artist",
+   "popularity": 0.364,
+   "tags": [
+    "urn:tag:genre:music:fanfit:synthwave",
+    "urn:tag:genre:music:fanfit:hip_hop",
+    "urn:tag:keyword:fanfit:street_food",
+    "urn:tag:keyword:fanfit:camping"
+   ],
+   "regions": {
+    "Denver": 0.861,
+    "Atlanta": 0.153,
+    "Miami": 0.16,
+    "Austin": 0.68,
+    "Seattle": 0.596
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.035,
+     "25_to_29": 0.18,
+     "30_to_34": 0.039,
+     "35_to_44": 0.195,
+     "45_to_54": 0.46,
+     "55_and_older": 0.091
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 4
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 4
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 18
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 9
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 13
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -4
+    }
+   ]
+  },
+  {
+   "entity_id": "BB9E185F-7FC3-534D-9E2F-1B6F2059A0FA",
+   "name": "Mara Quill",
+   "type": "urn:entity:artist",
+   "popularity": 0.74,
+   "tags": [
+    "urn:tag:keyword:fanfit:specialty_coffee",
+    "urn:tag:genre:music:fanfit:lo-fi",
+    "urn:tag:keyword:fanfit:vinyl_records",
+    "urn:tag:keyword:fanfit:street_food"
+   ],
+   "regions": {
+    "Atlanta": 0.298,
+    "Denver": 0.639,
+    "Portland": 0.609,
+    "Seattle": 0.153,
+    "Chicago": 0.763
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.441,
+     "25_to_29": 0.086,
+     "30_to_34": 0.064,
+     "35_to_44": 0.019,
+     "45_to_54": 0.0,
+     "55_and_older": 0.389
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 14
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 13
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -20
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 18
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 0
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 11
+    }
+   ]
+  },
+  {
+   "entity_id": "54C40E9A-1789-5E06-A5A4-39F9DACE2A49",
+   "name": "Static Harbor",
+   "type": "urn:entity:artist",
+   "popularity": 0.264,
+   "tags": [
+    "urn:tag:genre:music:fanfit:lo-fi",
+    "urn:tag:keyword:fanfit:design"
+   ],
+   "regions": {
+    "Miami": 0.475,
+    "Portland": 0.55,
+    "Denver": 0.265,
+    "Atlanta": 0.872,
+    "Chicago": 0.423
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.239,
+     "25_to_29": 0.214,
+     "30_to_34": 0.029,
+     "35_to_44": 0.001,
+     "45_to_54": 0.239,
+     "55_and_older": 0.278
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -7
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 14
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 24
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -8
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 25
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -1
+    }
+   ]
+  },
+  {
+   "entity_id": "14F362ED-858D-54B1-9896-E2C94B213EFE",
+   "name": "DJ Copperline",
+   "type": "urn:entity:artist",
+   "popularity": 0.205,
+   "tags": [
+    "urn:tag:keyword:fanfit:design",
+    "urn:tag:genre:music:fanfit:synthwave",
+    "urn:tag:keyword:fanfit:craft_beer"
+   ],
+   "regions": {
+    "Austin": 0.071,
+    "Brooklyn": 0.238,
+    "Portland": 0.669,
+    "Nashville": 0.214,
+    "Denver": 0.132
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.221,
+     "25_to_29": 0.067,
+     "30_to_34": 0.004,
+     "35_to_44": 0.0,
+     "45_to_54": 0.332,
+     "55_and_older": 0.375
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 16
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 16
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 10
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -5
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 10
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 6
+    }
+   ]
+  },
+  {
+   "entity_id": "B313B35A-72C7-55BC-A870-41A84CFC5012",
+   "name": "Neon Avenue",
+   "type": "urn:entity:artist",
+   "popularity": 0.685,
+   "tags": [
+    "urn:tag:genre:music:fanfit:lo-fi",
+    "urn:tag:genre:music:fanfit:latin_pop"
+   ],
+   "regions": {
+    "Austin": 0.249,
+    "Seattle": 0.19,
+    "Chicago": 0.449,
+    "Atlanta": 0.422,
+    "Nashville": 0.279
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.228,
+     "25_to_29": 0.066,
+     "30_to_34": 0.089,
+     "35_to_44": 0.392,
+     "45_to_54": 0.002,
+     "55_and_older": 0.224
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -5
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -16
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 8
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 15
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -14
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -17
+    }
+   ]
+  },
+  {
+   "entity_id": "EBD9CB25-5492-5B59-942E-595E2775E39A",
+   "name": "Sol y Brasa",
+   "type": "urn:entity:artist",
+   "popularity": 0.939,
+   "tags": [
+    "urn:tag:keyword:fanfit:vinyl_records",
+    "urn:tag:keyword:fanfit:specialty_coffee",
+    "urn:tag:genre:music:fanfit:indie_folk",
+    "urn:tag:keyword:fanfit:hot_sauce"
+   ],
+   "regions": {
+    "Los Angeles": 0.957,
+    "Miami": 0.995,
+    "Nashville": 0.556,
+    "Brooklyn": 0.718,
+    "Chicago": 0.155
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.045,
+     "25_to_29": 0.382,
+     "30_to_34": 0.074,
+     "35_to_44": 0.261,
+     "45_to_54": 0.006,
+     "55_and_older": 0.233
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -2
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -7
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -17
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 17
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 14
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -17
+    }
+   ]
+  },
+  {
+   "entity_id": "40733C9B-734F-5450-B6D7-F81376EE9F9D",
+   "name": "Juniper Ash",
+   "type": "urn:entity:artist",
+   "popularity": 0.646,
+   "tags": [
+    "urn:tag:genre:media:fanfit:true_crime",
+    "urn:tag:keyword:fanfit:cold_brew",
+    "urn:tag:keyword:fanfit:camping",
+    "urn:tag:keyword:fanfit:productivity"
+   ],
+   "regions": {
+    "Brooklyn": 0.579,
+    "Seattle": 0.04,
+    "Portland": 0.082,
+    "Los Angeles": 0.657,
+    "Miami": 0.565
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.128,
+     "25_to_29": 0.369,
+     "30_to_34": 0.013,
+     "35_to_44": 0.469,
+     "45_to_54": 0.003,
+     "55_and_older": 0.018
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 0
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -4
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -7
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 22
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 25
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 0
+    }
+   ]
+  },
+  {
+   "entity_id": "A4140D45-450E-5D00-B493-6C4C3152DAEB",
+   "name": "Kilo Verse",
+   "type": "urn:entity:artist",
+   "popularity": 0.666,
+   "tags": [
+    "urn:tag:keyword:fanfit:street_food",
+    "urn:tag:keyword:fanfit:sustainability"
+   ],
+   "regions": {
+    "Nashville": 0.506,
+    "Portland": 0.132,
+    "Atlanta": 0.349,
+    "Los Angeles": 0.069,
+    "Miami": 0.244
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.007,
+     "25_to_29": 0.175,
+     "30_to_34": 0.088,
+     "35_to_44": 0.362,
+     "45_to_54": 0.368,
+     "55_and_older": 0.0
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -2
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -10
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 8
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 14
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 25
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -1
+    }
+   ]
+  },
+  {
+   "entity_id": "D686E67C-F0B9-5332-A1AE-A24718A16BFC",
+   "name": "Velvet Arcade",
+   "type": "urn:entity:artist",
+   "popularity": 0.317,
+   "tags": [
+    "urn:tag:keyword:fanfit:craft_beer",
+    "urn:tag:keyword:fanfit:specialty_coffee",
+    "urn:tag:keyword:fanfit:vinyl_records",
+    "urn:tag:genre:media:fanfit:comedy"
+   ],
+   "regions": {
+    "Los Angeles": 0.634,
+    "Brooklyn": 0.264,
+    "Chicago": 0.489,
+    "Portland": 0.905,
+    "Miami": 0.846
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.283,
+     "25_to_29": 0.004,
+     "30_to_34": 0.252,
+     "35_to_44": 0.023,
+     "45_to_54": 0.258,
+     "55_and_older": 0.18
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -15
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 20
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 7
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -3
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -18
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -20
+    }
+   ]
+  },
+  {
+   "entity_id": "4E86EB34-5C57-5F62-9FE8-8ED6C4BB34AC",
+   "name": "Rio Marea",
+   "type": "urn:entity:artist",
+   "popularity": 0.878,
+   "tags": [
+    "urn:tag:genre:music:fanfit:hip_hop",
+    "urn:tag:keyword:fanfit:street_food",
+    "urn:tag:keyword:fanfit:trail_running"
+   ],
+   "regions": {
+    "Atlanta": 0.148,
+    "Austin": 0.127,
+    "Chicago": 0.308,
+    "Los Angeles": 0.899,
+    "Seattle": 0.796
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.301,
+     "25_to_29": 0.167,
+     "30_to_34": 0.1,
+     "35_to_44": 0.0,
+     "45_to_54": 0.003,
+     "55_and_older": 0.428
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -18
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 2
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -7
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 23
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -5
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 22
+    }
+   ]
+  },
+  {
+   "entity_id": "EF0CE274-5D18-5161-8F95-D595C3234D5A",
+   "name": "Hollow Creek",
+   "type": "urn:entity:artist",
+   "popularity": 0.932,
+   "tags": [
+    "urn:tag:keyword:fanfit:design",
+    "urn:tag:keyword:fanfit:vinyl_records"
+   ],
+   "regions": {
+    "Denver": 0.924,
+    "Seattle": 0.782,
+    "Austin": 0.412,
+    "Portland": 0.67,
+    "Chicago": 0.735
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.263,
+     "25_to_29": 0.056,
+     "30_to_34": 0.13,
+     "35_to_44": 0.008,
+     "45_to_54": 0.291,
+     "55_and_older": 0.252
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -5
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -3
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -10
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 24
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -14
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 4
+    }
+   ]
+  },
+  {
+   "entity_id": "E2C2CCFF-E9AB-5036-82F9-8293C15CFEB4",
+   "name": "Bassline Union",
+   "type": "urn:entity:artist",
+   "popularity": 0.695,
+   "tags": [
+    "urn:tag:keyword:fanfit:productivity",
+    "urn:tag:keyword:fanfit:hot_sauce"
+   ],
+   "regions": {
+    "Seattle": 0.967,
+    "Chicago": 0.279,
+    "Los Angeles": 0.641,
+    "Nashville": 0.4,
+    "Austin": 0.981
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.016,
+     "25_to_29": 0.339,
+     "30_to_34": 0.049,
+     "35_to_44": 0.271,
+     "45_to_54": 0.305,
+     "55_and_older": 0.02
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 14
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 1
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -19
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -13
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -4
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -9
+    }
+   ]
+  },
+  {
+   "entity_id": "8F6B1B01-10BB-5AD5-A2FF-1402A07CB7B2",
+   "name": "Grounds for Thought",
+   "type": "urn:entity:podcast",
+   "popularity": 0.343,
+   "tags": [
+    "urn:tag:keyword:fanfit:street_food",
+    "urn:tag:keyword:fanfit:cold_brew",
+    "urn:tag:genre:music:fanfit:lo-fi",
+    "urn:tag:keyword:fanfit:skateboarding"
+   ],
+   "regions": {
+    "Austin": 0.687,
+    "Seattle": 0.94,
+    "Nashville": 0.737,
+    "Los Angeles": 0.197,
+    "Atlanta": 0.431
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.044,
+     "25_to_29": 0.227,
+     "30_to_34": 0.07,
+     "35_to_44": 0.356,
+     "45_to_54": 0.005,
+     "55_and_older": 0.298
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 22
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 1
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 19
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 0
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 22
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -13
+    }
+   ]
+  },
+  {
+   "entity_id": "F3194125-37D5-579A-9642-F2FD48AF9FEF",
+   "name": "The Long Trail",
+   "type": "urn:entity:podcast",
+   "popularity": 0.761,
+   "tags": [
+    "urn:tag:genre:media:fanfit:comedy",
+    "urn:tag:keyword:fanfit:craft_beer",
+    "urn:tag:genre:music:fanfit:latin_pop",
+    "urn:tag:keyword:fanfit:skateboarding"
+   ],
+   "regions": {
+    "Denver": 0.304,
+    "Los Angeles": 0.21,
+    "Seattle": 0.786,
+    "Atlanta": 0.607,
+    "Austin": 0.322
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.07,
+     "25_to_29": 0.319,
+     "30_to_34": 0.202,
+     "35_to_44": 0.024,
+     "45_to_54": 0.29,
+     "55_and_older": 0.094
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 8
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 8
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 23
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -7
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 12
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 10
+    }
+   ]
+  },
+  {
+   "entity_id": "49169C6A-5E04-5C50-B214-DB11BCEFA671",
+   "name": "Spice Route Radio",
+   "type": "urn:entity:podcast",
+   "popularity": 0.805,
+   "tags": [
+    "urn:tag:keyword:fanfit:trail_running",
+    "urn:tag:genre:music:fanfit:indie_folk",
+    "urn:tag:genre:media:fanfit:comedy",
+    "urn:tag:keyword:fanfit:craft_beer"
+   ],
+   "regions": {
+    "Denver": 0.611,
+    "Austin": 0.768,
+    "Atlanta": 0.455,
+    "Portland": 0.886,
+    "Brooklyn": 0.576
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.233,
+     "25_to_29": 0.203,
+     "30_to_34": 0.005,
+     "35_to_44": 0.479,
+     "45_to_54": 0.029,
+     "55_and_older": 0.051
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 25
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 24
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 4
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 11
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 5
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -5
+    }
+   ]
+  },
+  {
+   "entity_id": "4B9519AE-2B75-5F79-A832-C7C6964E87FE",
+   "name": "Deep Focus",
+   "type": "urn:entity:podcast",
+   "popularity": 0.888,
+   "tags": [
+    "urn:tag:keyword:fanfit:specialty_coffee",
+    "urn:tag:genre:music:fanfit:lo-fi"
+   ],
+   "regions": {
+    "Portland": 0.668,
+    "Miami": 0.988,
+    "Denver": 0.595,
+    "Seattle": 0.95,
+    "Brooklyn": 0.891
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.262,
+     "25_to_29": 0.021,
+     "30_to_34": 0.28,
+     "35_to_44": 0.21,
+     "45_to_54": 0.093,
+     "55_and_older": 0.134
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 19
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 12
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 7
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 15
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 8
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -10
+    }
+   ]
+  },
+  {
+   "entity_id": "46C539CB-CA01-53D5-9830-DB90455EE295",
+   "name": "Case Files Weekly",
+   "type": "urn:entity:podcast",
+   "popularity": 0.735,
+   "tags": [
+    "urn:tag:keyword:fanfit:productivity",
+    "urn:tag:genre:music:fanfit:synthwave",
+    "urn:tag:keyword:fanfit:street_food",
+    "urn:tag:keyword:fanfit:hot_sauce"
+   ],
+   "regions": {
+    "Brooklyn": 0.081,
+    "Los Angeles": 0.151,
+    "Chicago": 0.383,
+    "Denver": 0.153,
+    "Atlanta": 0.214
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.377,
+     "25_to_29": 0.041,
+     "30_to_34": 0.323,
+     "35_to_44": 0.125,
+     "45_to_54": 0.031,
+     "55_and_older": 0.103
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 6
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 6
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 1
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 14
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 9
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 6
+    }
+   ]
+  },
+  {
+   "entity_id": "63236530-FF16-51DF-B474-9B02FCABAEA5",
+   "name": "Stand-Up Breakdown",
+   "type": "urn:entity:podcast",
+   "popularity": 0.558,
+   "tags": [
+    "urn:tag:keyword:fanfit:outdoor_adventure",
+    "urn:tag:keyword:fanfit:skateboarding"
+   ],
+   "regions": {
+    "Chicago": 0.538,
+    "Los Angeles": 0.735,
+    "Seattle": 0.8,
+    "Miami": 0.898,
+    "Brooklyn": 0.488
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.055,
+     "25_to_29": 0.216,
+     "30_to_34": 0.326,
+     "35_to_44": 0.0,
+     "45_to_54": 0.282,
+     "55_and_older": 0.121
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -3
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 7
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 11
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -19
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 4
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 1
+    }
+   ]
+  },
+  {
+   "entity_id": "E7EDE448-6E1B-5892-B517-5808FB9387A2",
+   "name": "Analog Hours",
+   "type": "urn:entity:podcast",
+   "popularity": 0.521,
+   "tags": [
+    "urn:tag:keyword:fanfit:sustainability",
+    "urn:tag:keyword:fanfit:trail_running",
+    "urn:tag:genre:music:fanfit:synthwave",
+    "urn:tag:genre:music:fanfit:hip_hop"
+   ],
+   "regions": {
+    "Miami": 0.327,
+    "Denver": 0.455,
+    "Austin": 0.338,
+    "Atlanta": 0.88,
+    "Brooklyn": 0.278
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.336,
+     "25_to_29": 0.1,
+     "30_to_34": 0.287,
+     "35_to_44": 0.122,
+     "45_to_54": 0.153,
+     "55_and_older": 0.002
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 6
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -4
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -15
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 10
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -19
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 14
+    }
+   ]
+  },
+  {
+   "entity_id": "55BE2882-0B9F-57C2-9F28-FF673759282D",
+   "name": "Weekend Wild",
+   "type": "urn:entity:podcast",
+   "popularity": 0.215,
+   "tags": [
+    "urn:tag:keyword:fanfit:design",
+    "urn:tag:keyword:fanfit:hot_sauce"
+   ],
+   "regions": {
+    "Denver": 0.114,
+    "Brooklyn": 0.948,
+    "Nashville": 0.465,
+    "Atlanta": 0.256,
+    "Chicago": 0.369
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.142,
+     "25_to_29": 0.206,
+     "30_to_34": 0.143,
+     "35_to_44": 0.192,
+     "45_to_54": 0.304,
+     "55_and_older": 0.013
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 18
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 18
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 25
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -13
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -10
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -1
+    }
+   ]
+  },
+  {
+   "entity_id": "A0728CD7-CE45-5911-8E05-2EDC813109CE",
+   "name": "Build Better",
+   "type": "urn:entity:podcast",
+   "popularity": 0.644,
+   "tags": [
+    "urn:tag:keyword:fanfit:camping",
+    "urn:tag:keyword:fanfit:specialty_coffee"
+   ],
+   "regions": {
+    "Brooklyn": 0.6,
+    "Portland": 0.121,
+    "Los Angeles": 0.984,
+    "Seattle": 0.783,
+    "Chicago": 0.347
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.28,
+     "25_to_29": 0.107,
+     "30_to_34": 0.267,
+     "35_to_44": 0.046,
+     "45_to_54": 0.287,
+     "55_and_older": 0.013
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 7
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 22
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 3
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -16
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 12
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 21
+    }
+   ]
+  },
+  {
+   "entity_id": "796C94A0-8F2C-5320-BE2D-2322E3C080C8",
+   "name": "Late Night Snacks",
+   "type": "urn:entity:podcast",
+   "popularity": 0.75,
+   "tags": [
+    "urn:tag:keyword:fanfit:specialty_coffee",
+    "urn:tag:keyword:fanfit:skateboarding",
+    "urn:tag:keyword:fanfit:productivity"
+   ],
+   "regions": {
+    "Los Angeles": 0.826,
+    "Atlanta": 0.592,
+    "Miami": 0.322,
+    "Brooklyn": 0.245,
+    "Seattle": 0.935
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.004,
+     "25_to_29": 0.34,
+     "30_to_34": 0.149,
+     "35_to_44": 0.253,
+     "45_to_54": 0.184,
+     "55_and_older": 0.07
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -3
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 8
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -5
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 9
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 16
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 19
+    }
+   ]
+  },
+  {
+   "entity_id": "3524FD6F-86EA-5B6B-A27E-AD313F390F52",
+   "name": "Off the Map",
+   "type": "urn:entity:tv_show",
+   "popularity": 0.726,
+   "tags": [
+    "urn:tag:keyword:fanfit:sustainability",
+    "urn:tag:genre:media:fanfit:true_crime",
+    "urn:tag:keyword:fanfit:specialty_coffee",
+    "urn:tag:keyword:fanfit:productivity"
+   ],
+   "regions": {
+    "Los Angeles": 0.086,
+    "Atlanta": 0.72,
+    "Austin": 0.489,
+    "Nashville": 0.758,
+    "Portland": 0.691
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.311,
+     "25_to_29": 0.014,
+     "30_to_34": 0.019,
+     "35_to_44": 0.273,
+     "45_to_54": 0.05,
+     "55_and_older": 0.333
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 21
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 25
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 11
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 8
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -19
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -15
+    }
+   ]
+  },
+  {
+   "entity_id": "E8BD9718-FA8B-5126-8FF6-D3C8E515A590",
+   "name": "Kitchen Underground",
+   "type": "urn:entity:tv_show",
+   "popularity": 0.448,
+   "tags": [
+    "urn:tag:keyword:fanfit:hot_sauce",
+    "urn:tag:keyword:fanfit:sustainability",
+    "urn:tag:genre:music:fanfit:latin_pop"
+   ],
+   "regions": {
+    "Miami": 0.121,
+    "Los Angeles": 0.193,
+    "Atlanta": 0.12,
+    "Denver": 0.536,
+    "Portland": 0.762
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.056,
+     "25_to_29": 0.202,
+     "30_to_34": 0.134,
+     "35_to_44": 0.168,
+     "45_to_54": 0.108,
+     "55_and_older": 0.332
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -9
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -8
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -7
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 10
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -3
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 17
+    }
+   ]
+  },
+  {
+   "entity_id": "BBAC8333-FBCF-5817-A98B-7D4F92ACF3E1",
+   "name": "Laugh Track Live",
+   "type": "urn:entity:tv_show",
+   "popularity": 0.241,
+   "tags": [
+    "urn:tag:genre:music:fanfit:latin_pop",
+    "urn:tag:genre:media:fanfit:comedy",
+    "urn:tag:genre:music:fanfit:lo-fi",
+    "urn:tag:keyword:fanfit:outdoor_adventure"
+   ],
+   "regions": {
+    "Los Angeles": 0.574,
+    "Denver": 0.469,
+    "Miami": 0.44,
+    "Austin": 0.184,
+    "Seattle": 0.051
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.106,
+     "25_to_29": 0.157,
+     "30_to_34": 0.11,
+     "35_to_44": 0.605,
+     "45_to_54": 0.019,
+     "55_and_older": 0.002
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 10
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -13
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -16
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 5
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 11
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -16
+    }
+   ]
+  },
+  {
+   "entity_id": "7E7A83F7-42D3-5C30-AF1E-FEB86EAEC726",
+   "name": "Cold Case Coast",
+   "type": "urn:entity:tv_show",
+   "popularity": 0.782,
+   "tags": [
+    "urn:tag:keyword:fanfit:cold_brew",
+    "urn:tag:genre:music:fanfit:hip_hop",
+    "urn:tag:keyword:fanfit:camping",
+    "urn:tag:genre:media:fanfit:comedy"
+   ],
+   "regions": {
+    "Seattle": 0.99,
+    "Miami": 0.305,
+    "Atlanta": 0.621,
+    "Denver": 0.61,
+    "Los Angeles": 0.74
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.006,
+     "25_to_29": 0.048,
+     "30_to_34": 0.241,
+     "35_to_44": 0.134,
+     "45_to_54": 0.275,
+     "55_and_older": 0.296
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -7
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 20
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -7
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -4
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 22
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -15
+    }
+   ]
+  },
+  {
+   "entity_id": "D5C29267-01F2-5260-877F-6FB103BF5C89",
+   "name": "Studio Sessions",
+   "type": "urn:entity:tv_show",
+   "popularity": 0.416,
+   "tags": [
+    "urn:tag:keyword:fanfit:hot_sauce",
+    "urn:tag:keyword:fanfit:trail_running"
+   ],
+   "regions": {
+    "Los Angeles": 0.924,
+    "Miami": 0.788,
+    "Portland": 0.625,
+    "Chicago": 0.661,
+    "Atlanta": 0.934
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.255,
+     "25_to_29": 0.021,
+     "30_to_34": 0.14,
+     "35_to_44": 0.398,
+     "45_to_54": 0.185,
+     "55_and_older": 0.001
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 7
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -13
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 14
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -6
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 21
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -11
+    }
+   ]
+  },
+  {
+   "entity_id": "8C5DC2C6-11FA-5101-A88E-836200C6119A",
+   "name": "Wild Weekends",
+   "type": "urn:entity:tv_show",
+   "popularity": 0.717,
+   "tags": [
+    "urn:tag:genre:music:fanfit:hip_hop",
+    "urn:tag:genre:music:fanfit:indie_folk",
+    "urn:tag:keyword:fanfit:cold_brew"
+   ],
+   "regions": {
+    "Seattle": 0.598,
+    "Los Angeles": 0.889,
+    "Miami": 0.735,
+    "Brooklyn": 0.604,
+    "Austin": 0.026
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.025,
+     "25_to_29": 0.086,
+     "30_to_34": 0.507,
+     "35_to_44": 0.293,
+     "45_to_54": 0.075,
+     "55_and_older": 0.014
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -6
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 23
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 16
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 17
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -19
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 23
+    }
+   ]
+  },
+  {
+   "entity_id": "4709A295-8BF7-54B9-8AB8-B0B39ADFE900",
+   "name": "Made by Hand",
+   "type": "urn:entity:tv_show",
+   "popularity": 0.569,
+   "tags": [
+    "urn:tag:keyword:fanfit:camping",
+    "urn:tag:keyword:fanfit:cold_brew",
+    "urn:tag:keyword:fanfit:trail_running"
+   ],
+   "regions": {
+    "Portland": 0.321,
+    "Miami": 0.105,
+    "Chicago": 0.161,
+    "Brooklyn": 0.412,
+    "Denver": 0.495
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.098,
+     "25_to_29": 0.188,
+     "30_to_34": 0.371,
+     "35_to_44": 0.015,
+     "45_to_54": 0.151,
+     "55_and_older": 0.178
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 22
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 5
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 15
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -18
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 9
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -15
+    }
+   ]
+  },
+  {
+   "entity_id": "AFD6F861-AD0F-59EA-97F9-C5DDEB222393",
+   "name": "Night Market",
+   "type": "urn:entity:tv_show",
+   "popularity": 0.51,
+   "tags": [
+    "urn:tag:keyword:fanfit:street_food",
+    "urn:tag:genre:media:fanfit:true_crime",
+    "urn:tag:genre:music:fanfit:lo-fi"
+   ],
+   "regions": {
+    "Brooklyn": 0.625,
+    "Atlanta": 0.76,
+    "Chicago": 0.204,
+    "Los Angeles": 0.549,
+    "Nashville": 0.928
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.306,
+     "25_to_29": 0.053,
+     "30_to_34": 0.086,
+     "35_to_44": 0.318,
+     "45_to_54": 0.141,
+     "55_and_older": 0.096
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 8
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 24
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 11
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -13
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -19
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 20
+    }
+   ]
+  },
+  {
+   "entity_id": "67422464-5521-5C04-AB25-ED6E2ED1C1C2",
+   "name": "Ava Stride",
+   "type": "urn:entity:person",
+   "popularity": 0.824,
+   "tags": [
+    "urn:tag:keyword:fanfit:hot_sauce",
+    "urn:tag:keyword:fanfit:trail_running",
+    "urn:tag:genre:media:fanfit:comedy",
+    "urn:tag:keyword:fanfit:specialty_coffee"
+   ],
+   "regions": {
+    "Miami": 0.98,
+    "Los Angeles": 0.244,
+    "Atlanta": 0.551,
+    "Brooklyn": 0.384,
+    "Seattle": 0.922
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.129,
+     "25_to_29": 0.004,
+     "30_to_34": 0.417,
+     "35_to_44": 0.353,
+     "45_to_54": 0.09,
+     "55_and_older": 0.006
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 12
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -12
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -16
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": -3
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 6
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 1
+    }
+   ]
+  },
+  {
+   "entity_id": "56ED2204-6187-5F60-876E-2DC10DA2CEDA",
+   "name": "Leo Kettle",
+   "type": "urn:entity:person",
+   "popularity": 0.449,
+   "tags": [
+    "urn:tag:keyword:fanfit:street_food",
+    "urn:tag:keyword:fanfit:specialty_coffee",
+    "urn:tag:genre:media:fanfit:comedy",
+    "urn:tag:keyword:fanfit:vinyl_records"
+   ],
+   "regions": {
+    "Atlanta": 0.981,
+    "Seattle": 0.239,
+    "Miami": 0.383,
+    "Denver": 0.856,
+    "Portland": 0.411
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.264,
+     "25_to_29": 0.127,
+     "30_to_34": 0.164,
+     "35_to_44": 0.282,
+     "45_to_54": 0.075,
+     "55_and_older": 0.088
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 0
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 10
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 25
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 4
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 4
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 22
+    }
+   ]
+  },
+  {
+   "entity_id": "5D6F40B9-CA78-5465-9E47-18E5586088FF",
+   "name": "Priya Ramp",
+   "type": "urn:entity:person",
+   "popularity": 0.543,
+   "tags": [
+    "urn:tag:genre:music:fanfit:hip_hop",
+    "urn:tag:keyword:fanfit:productivity",
+    "urn:tag:keyword:fanfit:cold_brew",
+    "urn:tag:genre:music:fanfit:latin_pop"
+   ],
+   "regions": {
+    "Denver": 0.782,
+    "Seattle": 0.265,
+    "Nashville": 0.623,
+    "Austin": 0.397,
+    "Brooklyn": 0.08
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.097,
+     "25_to_29": 0.134,
+     "30_to_34": 0.292,
+     "35_to_44": 0.295,
+     "45_to_54": 0.075,
+     "55_and_older": 0.107
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 1
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 23
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 14
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 4
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 0
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 20
+    }
+   ]
+  },
+  {
+   "entity_id": "0ACE2E76-B2FA-52CB-AFEE-044436E3F9A3",
+   "name": "Marcus Vane",
+   "type": "urn:entity:person",
+   "popularity": 0.77,
+   "tags": [
+    "urn:tag:keyword:fanfit:productivity",
+    "urn:tag:keyword:fanfit:vinyl_records",
+    "urn:tag:keyword:fanfit:cold_brew",
+    "urn:tag:genre:music:fanfit:indie_folk"
+   ],
+   "regions": {
+    "Portland": 0.903,
+    "Miami": 0.046,
+    "Denver": 0.796,
+    "Chicago": 0.293,
+    "Atlanta": 0.375
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.034,
+     "25_to_29": 0.289,
+     "30_to_34": 0.051,
+     "35_to_44": 0.032,
+     "45_to_54": 0.005,
+     "55_and_older": 0.59
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -11
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -5
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 13
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 6
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 16
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 23
+    }
+   ]
+  },
+  {
+   "entity_id": "E8F7EA64-2E81-5D16-8CE4-244E1CEDFBAB",
+   "name": "Nina Board",
+   "type": "urn:entity:person",
+   "popularity": 0.546,
+   "tags": [
+    "urn:tag:keyword:fanfit:trail_running",
+    "urn:tag:genre:music:fanfit:latin_pop"
+   ],
+   "regions": {
+    "Los Angeles": 0.899,
+    "Miami": 0.465,
+    "Nashville": 0.288,
+    "Chicago": 0.547,
+    "Austin": 0.074
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.003,
+     "25_to_29": 0.368,
+     "30_to_34": 0.186,
+     "35_to_44": 0.028,
+     "45_to_54": 0.404,
+     "55_and_older": 0.01
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 2
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 17
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": -1
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 20
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 7
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 24
+    }
+   ]
+  },
+  {
+   "entity_id": "27CA5855-18A9-5D95-82A0-3ECA9EC7799A",
+   "name": "Theo Summit",
+   "type": "urn:entity:person",
+   "popularity": 0.724,
+   "tags": [
+    "urn:tag:genre:music:fanfit:synthwave",
+    "urn:tag:genre:media:fanfit:comedy",
+    "urn:tag:keyword:fanfit:outdoor_adventure"
+   ],
+   "regions": {
+    "Austin": 0.865,
+    "Seattle": 0.778,
+    "Los Angeles": 0.974,
+    "Nashville": 0.911,
+    "Miami": 0.745
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.476,
+     "25_to_29": 0.347,
+     "30_to_34": 0.005,
+     "35_to_44": 0.069,
+     "45_to_54": 0.061,
+     "55_and_older": 0.042
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -2
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": -6
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 18
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 2
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -6
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 20
+    }
+   ]
+  },
+  {
+   "entity_id": "490C9CD5-942B-5BD1-92A0-E5C0A93ACCC8",
+   "name": "Lena Fuego",
+   "type": "urn:entity:person",
+   "popularity": 0.685,
+   "tags": [
+    "urn:tag:genre:music:fanfit:latin_pop",
+    "urn:tag:keyword:fanfit:street_food"
+   ],
+   "regions": {
+    "Los Angeles": 0.732,
+    "Miami": 0.09,
+    "Austin": 0.295,
+    "Nashville": 0.747,
+    "Denver": 0.176
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.138,
+     "25_to_29": 0.156,
+     "30_to_34": 0.131,
+     "35_to_44": 0.211,
+     "45_to_54": 0.119,
+     "55_and_older": 0.245
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": -12
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 14
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 3
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 13
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": 12
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": -3
+    }
+   ]
+  },
+  {
+   "entity_id": "F1DC7F1C-83AA-596E-95BF-BC52F6216D1D",
+   "name": "Omar Grind",
+   "type": "urn:entity:person",
+   "popularity": 0.766,
+   "tags": [
+    "urn:tag:keyword:fanfit:street_food",
+    "urn:tag:keyword:fanfit:productivity"
+   ],
+   "regions": {
+    "Brooklyn": 0.014,
+    "Seattle": 0.537,
+    "Chicago": 0.455,
+    "Austin": 0.673,
+    "Nashville": 0.672
+   },
+   "demographics": {
+    "age": {
+     "24_and_younger": 0.353,
+     "25_to_29": 0.033,
+     "30_to_34": 0.286,
+     "35_to_44": 0.244,
+     "45_to_54": 0.083,
+     "55_and_older": 0.002
+    }
+   },
+   "trend": [
+    {
+     "date": "2026-05-01",
+     "population_rank_delta": 17
+    },
+    {
+     "date": "2026-06-01",
+     "population_rank_delta": 4
+    },
+    {
+     "date": "2026-07-01",
+     "population_rank_delta": 20
+    },
+    {
+     "date": "2026-08-01",
+     "population_rank_delta": 3
+    },
+    {
+     "date": "2026-09-01",
+     "population_rank_delta": -14
+    },
+    {
+     "date": "2026-10-01",
+     "population_rank_delta": 23
+    }
+   ]
+  }
+ ]
+}
