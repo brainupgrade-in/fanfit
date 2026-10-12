@@ -1,102 +1,207 @@
 # FanFit — spec
 
-Sponsorship matchmaking agent grounded in Qloo's taste graph. Written 2026-10-13. Status: draft, not yet checked against live API data.
+Sponsorship matchmaking agent grounded in Qloo's taste graph.
+v1 written 2026-10-13. v2 2026-10-13, after an independent spec review (all 12 points applied; see §14).
+Status: not yet checked against live API data (no key).
 
 ## 1. Problem
-Brands choose sponsorship partners (artists, podcasts, creators, TV shows, teams) mostly by reach (followers, downloads) and gut feel.
+Brands choose sponsorship partners (artists, podcasts, creators, TV shows) mostly by reach (followers, downloads) and gut feel.
 Reach says nothing about whether *those fans like this kind of brand*, so a lot of sponsorship money is spent on audiences that don't fit.
 On the other side, independent creators don't know which brands to pitch, and they have no evidence to put in a pitch.
 A plain LLM answers "who should sponsor X?" with stereotypes ("energy drinks for gamers"). It has no affinity data.
 
-## 2. Users
+## 2. Users, and why this helps Qloo
 - **Primary: a brand or agency marketer** planning a campaign. Needs a defensible shortlist of partners, quickly.
-- **Secondary: a creator or talent manager** (podcaster, musician, show) looking for brands to pitch.
+- **Secondary (stretch): a creator or talent manager** looking for brands to pitch.
 
-## 3. Core flows
-### A. Brand → partners (the main demo)
-1. The user types a brief: brand (or a category if the brand isn't in Qloo), product, target audience (age band, gender, optional city/region), and the partner types wanted.
-2. The agent resolves the brief into Qloo entities and tags and **shows what it resolved** ("Brand: X, matched by Qloo search. Tags: cold brew, specialty coffee"). The user can correct them before going on.
-3. The agent finds candidate partners whose fans have high affinity with the brand and its tags, filtered to the target demographic.
-4. It ranks the candidates and builds a **fit card** for each one:
-   - affinity score and rank (Qloo);
-   - where that audience is concentrated, compared with the target market (Qloo location);
-   - whether the partner is rising or falling (Qloo trends, when available);
-   - the overlapping taste tags ("fans of both index on: indie folk, specialty coffee, outdoor brands");
-   - a one-paragraph *why this fit*, written by the LLM **only from the Qloo evidence on the card**, and labelled as interpretation.
-5. The user picks one or more partners. The agent drafts an outreach pitch or a sponsorship one-pager from the fit card evidence.
+**What's new compared with Qloo's own products.** Qloo already sells audience insight to enterprise brands and agencies, as data and dashboards.
+FanFit is a different layer: an *agent* that turns a plain-English brief into a ranked partner shortlist and a ready-to-send pitch,
+and shows its evidence. That is the decision a sponsorship buyer actually has to make.
+**Commercial case for Qloo:** (1) it opens a workflow product for the sponsorship and partnerships market, sold per seat to agencies and talent agencies, with every brief driving several API calls;
+(2) the creator side reaches a long tail of buyers Qloo does not serve today (podcasters, independent artists), as a cheap self-serve tier;
+(3) it shows Qloo as the evidence layer behind agent decisions, which is the position Qloo wants in an agent-driven market.
 
-### B. Creator → brands
-The same engine in reverse. The input is the creator's own show or act (a Qloo entity). The output is ranked brands, with fit cards and a pitch email to each.
+## 3. Scope
+### Must ship
+**Flow A, brand → partners**
+1. The user enters a brief: brand (or category words if the brand isn't in Qloo), target age band, gender (optional), target market (optional), and partner types (artist / podcast / tv_show / person).
+2. The agent pulls **short lookup terms** out of the brief (brand name, 1–3 category words) and resolves them with Qloo search and tags.
+   It **shows what it resolved** ("Brand: X (Qloo entity). Tags: cold brew, specialty coffee"), and the user confirms or corrects before continuing.
+   Preset briefs come with their entities already confirmed, so a judge gets a one-click run.
+3. The agent fetches candidates per partner type using Qloo Insights, signalled by the brand and tags and filtered to the demographic band.
+   It caps the shortlist at **8 cards**.
+4. Each **fit card** shows:
+   - the affinity score and rank (Qloo);
+   - the top regions for that partner's audience, as a ranked list compared with the target market (Qloo heatmap). No map;
+   - a trend badge, **only if** the §9 check shows trending data exists for that type;
+   - the shared taste tags (Qloo explainability, or the partner's own tags);
+   - a *why this fit* paragraph built from **structured claims, each tied to an evidence id on the card** (§5). It is labelled as AI interpretation.
+5. **Draft pitch:** a one-page outreach email built only from the card's evidence.
+6. **Qloo vs. LLM-only panel** (§5.4).
+7. **3 preset briefs** on the landing page. One of them is an artist and tour sponsorship brief, because a Live Nation executive is on the judging panel.
 
-### C. Compare (stretch)
-Two candidate partners side by side, comparing their audiences (demographics, tags, geography), so the user can say "why A over B".
+### Stretch (only after everything in "must ship" works on the live URL)
+- **Reverse button** (creator → brands). It reuses the flow A card code with `filter.type=urn:entity:brand`, signalled by the creator's entity.
+- Markdown export of the shortlist.
 
-## 4. How Qloo is used (each step must depend on Qloo, not the LLM)
-| Step | Qloo call | Notes |
-|---|---|---|
-| Resolve brand, partner and seed names | `GET /search` | Entity ids. The user confirms ambiguous matches. |
-| Category and vibe words → tags | `GET /v2/tags` | Tags become signals when the brand isn't in Qloo. |
-| Candidate partners | `GET /v2/insights` with `filter.type` = artist / podcast / tv_show / person, `signal.interests.entities` = brand, `signal.interests.tags`, `signal.demographics.*` | The core affinity ranking. |
-| Reverse (creator → brands) | `GET /v2/insights` with `filter.type=urn:entity:brand`, signal = the creator | |
-| Where the audience is | `GET /v2/insights` with location signals or filters, or the harness `qloo_where_popular` | Compared with the brief's target market. |
-| Audience overlap and differences | harness `qloo_compare_audiences` or the REST equivalent | Shared tags for the fit card. |
-| Momentum | harness `qloo_trends` or the REST equivalent | Optional badge. |
+### Cut
+Compare view, PDF export, maps.
 
-Exact parameter names, entity type coverage (brands, podcasts, persons/athletes) and the REST equivalents of the harness workflows **must be verified on day 1 with the key** (see §9).
+## 4. Qloo usage (decision: plain REST from Python, no `qloo mcp`)
+**Why REST:** a single `QlooClient` keeps caching, replay mode and the "no free text" rule in one place.
+The official harness (`@qloo/qloo-harness` 0.1.26, read but not run) is used only as a reference for request shapes. Its query patterns are copied below.
+
+| Step | Request |
+|---|---|
+| Resolve the brand or a named partner | `GET /search?query=<lookup term>&types=urn:entity:brand` (or another type) |
+| Category words → tag ids | `GET /v2/tags?filter.query=<word>` (exact parameter name to verify) |
+| Candidate partners | `GET /v2/insights` with `filter.type=urn:entity:{artist,podcast,tv_show,person}`, `signal.interests.entities=<brand id>`, `signal.interests.tags=<tag ids>`, `operator.signal.interests.tags=union`, `signal.demographics.age=<band>`, `signal.demographics.gender=<g>`, `feature.explainability=true`, `take=20` |
+| Audience geography for a partner | `GET /v2/insights` with `filter.type=urn:heatmap`, `signal.interests.entities=<partner id>`, `filter.location.query=<target market>`, sorted by `query.affinity` |
+| Audience demographics (card detail) | `GET /v2/insights` with `filter.type=urn:demographics`, `signal.interests.entities=<partner id>` |
+| Momentum badge | `GET /v2/trending` with `filter.type`, `signal.interests.entities`, `filter.start_date`, `filter.end_date` |
+| Reverse (stretch) | `GET /v2/insights` with `filter.type=urn:entity:brand`, `signal.interests.entities=<creator id>` |
+
+Base URL `https://hackathon.api.qloo.com`, header `X-Api-Key`. Affinity is read from `entity.affinity`, falling back to `entity.query.affinity`, as the harness does.
+Age bands come from the documented set: `24_and_younger`, `25_to_29`, `30_to_34`, `35_to_44`, `45_to_54`, `55_and_older`.
 
 ## 5. Agent design
-- **Pattern:** an LLM tool-calling loop. The tools are thin wrappers over the Qloo calls above, plus `render_fit_card` and `draft_pitch`.
-  The agent plans the steps, retries when a search is ambiguous, and has to show the user the entities it resolved before ranking.
-- **Grounding rule:** every claim on a fit card cites a Qloo field. The LLM may *interpret*, but it may not *invent* affinities.
-  Cards visibly separate the Qloo evidence from the AI interpretation.
-- **LLM:** reached through an OpenAI-compatible client, so the provider is a config switch. The default is a Nemotron model on Nebius Token Factory (lets the project also enter `~/nebiusglobalaihackathon`). The fallback is any model behind LiteLLM.
-- **Caching:** Qloo responses are cached per (endpoint, params) for the demo, to respect quota and keep the demo fast. No bulk crawling.
+### 5.1 Loop
+An LLM tool-calling loop with these tools:
+- Qloo wrappers: `resolve_entity`, `resolve_tags`, `find_partners`, `audience_geo`, `audience_demographics`, `trend`;
+- `build_card`;
+- `write_claims`;
+- `draft_pitch`.
+
+The agent may retry an ambiguous resolution, but it must pass the resolved ids back to the UI for confirmation before calling `find_partners`.
+Limits: at most 12 tool calls per brief, and at most 8 cards.
+
+### 5.2 The QlooClient interface
+One interface with two implementations:
+- **`FixtureQlooClient`:** serves recorded or synthetic JSON from `fixtures/`. Used for development before the key arrives, and for tests.
+- **`LiveQlooClient`:** uses httpx, and writes every response to a disk cache keyed by (path, sorted params).
+  A third mode, **replay**, serves only from that cache and shows a "cached Qloo data" banner in the UI.
+
+The mode is set by `QLOO_MODE=fixture|live|replay`. Switching from fixtures to the live API changes no app code.
+
+### 5.3 Grounding (testable)
+`write_claims` returns structured output, a list of `{text, evidence_ids[]}` objects.
+Each `evidence_id` points to a field on the card, such as `affinity`, `tag:<tag id>`, `geo:<region>`, `demo:<band>` or `trend`.
+A validator **drops any claim** that has no evidence id, an unknown id, or names an entity or tag that isn't on the card.
+The UI shows only the claims that pass, each linked to its evidence.
+
+### 5.4 Qloo vs. LLM-only
+The comparison run uses the **same brief and the same model, with no tools**.
+The panel shows:
+- (a) the partners that only Qloo found;
+- (b) Qloo affinity scores, which the LLM-only side cannot give;
+- (c) partners the LLM-only side named that Qloo rates low, or can't resolve.
+
+Presets are chosen where the difference is large: niche brands and non-obvious partners.
+
+### 5.5 LLM provider
+Reached through an OpenAI-compatible client, configured by `LLM_BASE_URL`, `LLM_API_KEY` and `LLM_MODEL`.
+- **Primary:** a Nemotron model on Nebius Token Factory.
+- **Fallback:** LiteLLM. The fallback must be *deployed and tested*, not just configured.
+
+The app must work if either provider is down.
 
 ## 6. Product and UI
-- A web app: a brief form or chat on the left, and the agent's live step trace ("resolving brand…", "ranking 40 podcasts…") plus the result cards on the right.
-- Fit cards: score bar, a small audience-geography map or list, a trend badge, shared tags, *why this fit*, and a "Draft pitch" button.
-- Export a shortlist as Markdown or PDF (stretch).
-- 2–3 preset example briefs on the landing page, so judges can try it in one click.
+- A one-page web app. On the left, the brief form and the 3 presets. On the right, the live agent step trace, the confirmation step, then the cards and the vs. panel.
+- **States:**
 
-## 7. Stack (assumption, can change)
-- Backend: Python 3.12, FastAPI, httpx, uv. The agent loop is hand-written, or LangGraph if the loop gets messy.
-- Frontend: one page served by FastAPI (HTMX or a small React bundle). No separate build pipeline unless needed.
-- Hosting: a container on Spark k3s behind the Cloudflare tunnel, at a public URL. **It must stay up until 16 Nov.**
-- Secrets (`QLOO_API_KEY`, LLM key) stay server-side only.
-
-## 8. Non-goals
-- No personal data sent to Qloo (no names of private individuals, emails or location history). Inputs are brands, public entities and demographic bands.
-- No follower or reach scraping, and no contract or pricing management.
-- No claims about individuals. The results describe aggregate affinities, and the UI says so.
-
-## 9. Day-1 data check (go / no-go for this idea)
-Run with the key before building the UI:
-1. Do `/search` and `/v2/insights` return **brands**? Try 5 real brands across categories.
-2. Does `filter.type` support **podcast**, **artist**, **tv_show**, **person** (athletes/creators) as partner types?
-3. Does insights for a brand signal + an artist filter give a plausibly different ranking from the same call with no brand signal? This proves Qloo adds signal.
-4. Are location and trend data available for those entity types?
-
-If brands are thin: use category **tags** as the brand signal. If both are thin: pivot to idea #2, the tour and pop-up planner (artists + places).
-
-## 10. Acceptance criteria (for submission)
-- [ ] The live public URL works end to end for both flows (A and B), with no login. If login is needed, credentials go in the testing instructions.
-- [ ] Each result card shows the Qloo evidence, and the "why" text cites only that evidence.
-- [ ] **Qloo vs. LLM-only toggle:** the same brief run without Qloo, shown side by side. This proves the differentiator to judges.
-- [ ] The public GitHub repo has an Apache-2.0 license in its About section, and a README with setup steps, how Qloo is used, a redacted request → result walkthrough and the limitations.
-- [ ] The Devpost text description and screenshots are done.
-
-## 11. Milestones (deadline Sat 31 Oct 09:15 IST)
-| By | Milestone |
+| State | What the user sees |
 |---|---|
-| key + 1 day | Day-1 data check (§9) done. Go or pivot. |
-| 20 Oct | The Qloo client and agent loop produce ranked fit-card JSON for flow A from the CLI. |
-| 24 Oct | Web UI with step trace and cards. Flow B added. |
-| 26 Oct | Deployed on the public URL. Qloo vs. LLM-only toggle working. |
-| 28 Oct | Polish, preset briefs, README, pitch drafting. |
-| 29 Oct | Devpost submission saved as a draft (no last-day risk). |
+| Loading | Step trace with a spinner per step |
+| Unresolved brief | "Couldn't find '<term>' in Qloo. Try the category instead." with the tag suggestions |
+| Empty result | Message naming the filter to relax (age band, partner type) |
+| Qloo 429 or timeout | One bounded retry, then a fallback to replay cache if it has the request, otherwise a clear error |
+| LLM failure | Cards still render with the Qloo evidence only; the "why" text and pitch are hidden |
+| Replay mode | Persistent banner |
+
+- **Abuse limits** (the demo is public with no login): a per-IP rate limit (for example 10 briefs an hour), a global daily cap on live Qloo and LLM calls, and the 8-card cap.
+  When the cap is hit, the app falls back to replay mode for presets.
+
+## 7. Stack and hosting
+- Python 3.12, FastAPI, httpx, uv. The agent loop is hand-written; LangGraph only if the loop gets messy.
+- Frontend: one HTML page served by FastAPI (plain JS or HTMX). No build pipeline.
+- A container on Spark k3s, exposed through the Cloudflare tunnel at a public URL.
+  This deployment is excluded from the cohort scale-down of the training sandboxes.
+- An uptime monitor checks the URL until 16 Nov.
+- Secrets stay server-side only.
+
+## 8. Data handling
+- **Nothing the user types goes to Qloo verbatim.** Qloo only ever receives:
+  - (a) short lookup terms for `/search` and `/v2/tags`, which the agent extracts and caps at 40 characters each;
+  - (b) Qloo entity ids and tag ids;
+  - (c) demographic bands from the fixed enum;
+  - (d) a market name for `filter.location.query`.
+
+  `QlooClient` enforces this with a parameter allowlist, and a unit test covers it.
+- Lookup terms must resolve to a **public Qloo entity**. If a name doesn't resolve, the UI says so and nothing else is sent. There is no "describe a person" input.
+- Results are aggregate affinities. The UI says so, and makes no claims about individuals.
+- **Fixtures in the public repo:** synthetic, or trimmed to the fields we use, until the Qloo terms on redistributing responses are checked.
+  The live replay cache stays out of git (it's on the deployed volume).
+
+## 9. Day-1 data check (go / no-go)
+Run `scripts/datacheck.py` with the key, over 5 brands from different categories:
+1. **Brand coverage:** 4 of 5 brands resolve with `/search` `types=urn:entity:brand`.
+2. **Partner types:** insights returns at least 10 results for each of artist, podcast, tv_show and person, using a brand signal.
+3. **Qloo adds signal:** for each brand, compare the top 10 with the brand signal against the top 10 with no signal (popularity baseline).
+   The mean Jaccard overlap must be **below 0.5**, and at least 3 of 5 rankings must pass a manual gut check (recorded in `docs/datacheck.md`).
+4. **Optional data:** do heatmap, demographics and trending return data for the partner types? This decides whether those parts of the card ship.
+
+**Fallbacks:** if brands are thin, use category tags as the signal (rerun 3 with tags). If that's thin too, pivot to the tour and pop-up planner (artists + places).
+
+## 10. Acceptance criteria
+- [ ] The live public URL runs flow A end to end, with no login, for all 3 presets.
+- [ ] Each preset finishes in **under 20 s** from a cold cache, and in under 5 s in replay mode.
+- [ ] Every "why" claim shown has at least one valid evidence id. A validator unit test passes on the preset outputs, plus negative cases (an invented tag, a missing id).
+- [ ] A unit test shows no Qloo request carries parameters outside the allowlist, or any value over 40 characters.
+- [ ] The Qloo vs. LLM-only panel works on all presets and shows at least one partner only Qloo found in each.
+- [ ] The demo works with `QLOO_MODE=replay` and no `QLOO_API_KEY`, and with either LLM provider.
+- [ ] The UI handles each §6 state (each covered by a test with the fixture client).
+- [ ] An uptime monitor is on the URL.
+- [ ] The public GitHub repo shows Apache-2.0 in its About section. The README covers setup, how Qloo is used, a redacted request → result walkthrough, the limitations and the commercial case.
+- [ ] The Devpost description and screenshots are done.
+
+## 11. Milestones (deadline Sat 31 Oct 09:15 IST; Agenthon finals run 13–25 Oct at the same time)
+| Date | Milestone |
+|---|---|
+| 13 Oct | Key requested. Spec v2. Fixture-driven build starts. |
+| **16 Oct** | No key yet → escalate in Discord #api-help. |
+| 18 Oct | With fixtures: QlooClient (fixture + live + replay), agent loop, claims validator, fit-card JSON from the CLI. |
+| **19 Oct** | **Go / pivot decision.** Uses the §9 check if the key is in; otherwise go, on the strength of the API reference, which lists brand, podcast, person and tv_show as types. |
+| 22 Oct | Web UI: trace, confirmation, cards, all §6 states. |
+| 24 Oct | Deployed on the public URL. vs. panel working. Replay cache seeded with the presets. |
+| 27 Oct | Polish, pitch drafting, README, uptime monitor. Stretch work only if all of this is done. |
+| 29 Oct | Devpost submission saved as a draft. |
 
 ## 12. Risks
-- **Key arrival:** keys are issued by hand. Mitigation: build the UI and the agent loop against recorded fixtures while waiting.
-- **Entity coverage:** see §9, with a pivot path.
-- **Quota:** caching, and ask in Discord #api-help.
-- **Demo uptime to 16 Nov:** Spark sandboxes get scaled down between cohorts. This deployment must be excluded from that.
+- **Key arrival:** handled by building on fixtures, the dated escalation and the 19 Oct decision.
+- **Key turned off before judging ends (16 Nov):** ask in Discord, in writing, when the key is turned off. Replay mode covers the presets regardless.
+- **LLM credits or outage:** a deployed fallback provider, and cards degrade to evidence only.
+- **Entity coverage:** §9, with fallbacks.
+- **The vs. panel backfires:** chosen presets and a defined comparison (§5.4).
+- **Quota or abuse:** caching, rate limits, the daily cap, and replay fallback.
+- **Spark uptime:** excluded from the sandbox scale-down, and watched by the uptime monitor.
+- **Also entering Nebius:** allowed by Qloo's rules. Confirm the Nebius rules allow a project entered elsewhere.
+  The README makes clear that Qloo is the core. The Nebius requirement must not make the Qloo demo fragile (fallback provider).
+
+## 13. Open items
+- The exact parameter name of `/v2/tags` for text search, and the response fields. Verify with the key.
+- Whether to redistribute Qloo responses as fixtures (ask in Discord).
+
+## 14. Review log
+2026-10-13, independent spec review (spec-analyst subagent) produced 12 points:
+1. Replay mode for when the key expires → §5.2, §12
+2. Scope cut → §3
+3. Dated milestones and the fixture client → §5.2, §11
+4. Testable grounding → §5.3
+5. Enforced privacy → §8. Adjusted: search needs lookup terms, so the rule is "only short extracted terms", not "no text at all".
+6. REST vs. MCP decision → §4
+7. Measurable go/no-go → §9
+8. Defined vs. panel → §5.4
+9. Commercial case and the Live Nation preset → §2, §3
+10. UX states and abuse limits → §6
+11. Fixtures and redistribution → §8
+12. Nebius dual entry → §12
