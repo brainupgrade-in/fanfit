@@ -159,3 +159,13 @@ label.check input { width: auto; }
 .status { font-size: 12.5px; margin-top: 2px; }
 .status.ok { color: var(--good); } .status.warn { color: var(--warn-ink); } .status.bad { color: var(--bad); }
 @media (prefers-color-scheme: dark) { .status.warn { color: #e8c766; } }
+
+.secondary.small { padding: 6px 10px; font-size: 13px; }
+.pitch { display: grid; gap: 10px; justify-items: start; }
+.pitch-out:empty { display: none; }
+.pitch-out { width: 100%; }
+.email { border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; font-size: 14px; background: var(--bg); }
+.email p { margin: 8px 0; }
+.email ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
+.email-subject { font-weight: 600; }
+.email-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; }

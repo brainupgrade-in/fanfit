@@ -42,3 +42,13 @@ def foreign_names_for(card: dict, cards: list[dict]) -> set[str]:
         names.add(other["partner"]["name"])
         names |= {v["value"] for k, v in other["evidence"].items() if k.startswith("tag:")}
     return names
+
+
+def clean_framing(text: str, fallback: str, foreign_names: set[str], allow_counts: bool = False) -> str:
+    """Pitch subject/opening/ask carry no facts: no measured values (or no digits at all), no other partners' names."""
+    t = (text or "").strip()[:300]
+    if not t or any(n.lower() in t.lower() for n in foreign_names):
+        return fallback
+    if _MEASURE.search(t) if allow_counts else re.search(r"\d", t):
+        return fallback
+    return t

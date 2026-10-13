@@ -141,9 +141,10 @@ async function runShortlist(payload) {
   }
   if (r.llm === "failed") notice("The AI rationale is offline right now, so the cards show the Qloo evidence only.");
   else if (r.llm === "off") notice("AI rationale is off on this server, so the cards show the Qloo evidence only.");
+  lastPayload = payload;
+  lastCards = r.cards;
   renderCards(r.cards, payload.brief);
   $("#footnote").hidden = false;
-  lastPayload = payload;
   $("#compare-out").replaceChildren();
   $("#compare-btn").hidden = false;
   $("#compare").hidden = !config.llm;
@@ -243,12 +244,46 @@ function renderCard(c, brief) {
             el("div", { class: "bar" }, el("i", { style: `width:${Math.round((v.affinity / maxGeo) * 100)}%` })))))
           : el("p", { class: "hint", text: "Regional data unavailable." }))));
 
+  if (config.llm) {
+    const out = el("div", { class: "pitch-out" });
+    const btn = el("button", { class: "secondary small", type: "button", text: "Draft outreach email",
+      onclick: () => runPitch(c, card, btn, out) });
+    card.append(el("div", { class: "pitch" }, btn, out));
+  }
   if (c.claims?.length) {
     card.append(el("div", { class: "why" },
       el("h4", {}, "Why this fit ", el("small", { text: "· AI interpretation of the evidence above" })),
       el("ul", {}, c.claims.map((cl) => el("li", {}, cl.text, ...cl.evidence_ids.map((id) => citeChip(card, id, ev[id])))))));
   }
   return card;
+}
+let lastCards = [];
+function brandLabel(p) { return p.brand ? p.brand.name : p.tags.map((t) => t.name).join(", "); }
+async function runPitch(c, cardEl, btn, out) {
+  btn.disabled = true; btn.textContent = "Drafting…";
+  const others = lastCards.filter((x) => x !== c).map((x) => x.partner.name);
+  const { claims, ...card } = c;
+  let r;
+  try {
+    const res = await fetch("/api/pitch", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ brand_label: brandLabel(lastPayload), card, others }) });
+    r = await res.json();
+  } catch { r = { type: "error", message: "Network error. Try again." }; }
+  btn.disabled = false; btn.textContent = "Redraft email";
+  if (r.type === "error") { out.replaceChildren(el("div", { class: "notice error", text: r.message })); return; }
+  const p = r.pitch, brand = brandLabel(lastPayload);
+  const plain = [`Subject: ${p.subject}`, "", p.opening, "", ...p.points.map((x) => `- ${x.text}`), "", p.ask, "", `${brand} partnerships team`].join("\n");
+  const copy = el("button", { class: "secondary small", type: "button", text: "Copy email", onclick: async () => {
+    try { await navigator.clipboard.writeText(plain); copy.textContent = "Copied"; } catch { copy.textContent = "Copy failed: select the text instead"; }
+    setTimeout(() => (copy.textContent = "Copy email"), 2000);
+  } });
+  out.replaceChildren(el("div", { class: "email" },
+    el("div", { class: "email-subject" }, el("span", { class: "hint", text: "Subject: " }), p.subject),
+    el("p", { text: p.opening }),
+    el("ul", {}, p.points.map((x) => el("li", {}, x.text, ...x.evidence_ids.map((id) => citeChip(cardEl, id, c.evidence[id]))))),
+    el("p", { text: p.ask }),
+    el("p", { class: "hint", text: `${brand} partnerships team` }),
+    el("div", { class: "email-actions" }, copy, el("span", { class: "hint", text: "Every fact in this draft cites the card's Qloo evidence." }))));
 }
 function citeChip(card, id, v) {
   const label = id === "affinity" ? "affinity" : id === "trend" ? "trend"

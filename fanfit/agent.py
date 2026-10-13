@@ -9,7 +9,7 @@ from typing import Protocol
 
 import httpx
 
-from fanfit.grounding import foreign_names_for, validate_claims
+from fanfit.grounding import clean_framing, foreign_names_for, validate_claims
 from fanfit.pipeline import Brief, Resolution, search_entities, search_tags
 from fanfit.qloo import QlooClient
 
@@ -184,3 +184,52 @@ def llm_only_partners(brand_label: str, brief: Brief, llm: LLM) -> list[dict]:
         if name and len(name) <= 40 and ptype in b.partner_types:
             out.append({"name": name, "type": ptype, "reason": str(p.get("reason", ""))[:200]})
     return out
+
+
+PITCH_SYSTEM = """You draft a short sponsorship outreach email from a brand to a partner (artist, podcast, show or creator).
+Use ONLY the evidence given for facts. Return JSON:
+{"subject": "...", "opening": "one friendly sentence, no numbers",
+ "points": [{"text": "one sentence", "evidence_ids": ["<key from evidence>"]}],
+ "ask": "one sentence proposing a next step"}
+2-4 points; every point cites at least one evidence key and quotes its value when it says strong/high/top.
+Address the partner by name. Never mention other partners, invented numbers, prices or deliverables.
+Don't claim personal experience you can't know (e.g. "I've been enjoying your podcast"); open with why you're writing.
+""" + EVIDENCE_GUIDE
+
+
+def supportive_evidence(card: dict) -> dict:
+    """The subset of a card's evidence that argues FOR the partnership. The card shows everything; a pitch shouldn't
+    sell a 0.5% age share or a falling trend."""
+    keep = {}
+    for k, v in card["evidence"].items():
+        if k.startswith("demo:") and v["value"] < 0.15:
+            continue
+        if k == "trend" and v["value"] <= 0:
+            continue
+        if k.startswith("geo:") and v.get("affinity", 0) < 0.5:
+            continue
+        keep[k] = v
+    return keep
+
+
+def draft_pitch(card: dict, cards: list[dict], brand_label: str, llm: LLM, foreign: set[str] | None = None) -> dict | None:
+    """Outreach email whose every fact is a validated, evidence-cited point. None if nothing grounded survives."""
+    partner = card["partner"]["name"]
+    foreign = foreign if foreign is not None else foreign_names_for(card, cards)
+    card = {**card, "evidence": supportive_evidence(card)}
+    payload = {"brand": brand_label, "partner": partner, "partner_type": card["partner"]["type"].split(":")[-1],
+               "evidence": card["evidence"]}
+    msg = llm.chat([{"role": "system", "content": PITCH_SYSTEM}, {"role": "user", "content": json.dumps(payload)}], json_mode=True)
+    try:
+        raw = json.loads(msg.get("content") or "{}")
+    except json.JSONDecodeError:
+        return None
+    points = validate_claims(card, raw.get("points") or [], foreign)
+    if not points:
+        return None
+    return {
+        "subject": clean_framing(raw.get("subject"), f"Partnership idea: {brand_label} x {partner}", foreign),
+        "opening": clean_framing(raw.get("opening"), f"Hi {partner} team,", foreign),
+        "points": points,
+        "ask": clean_framing(raw.get("ask"), "Would you be open to a short call to explore a partnership?", foreign, allow_counts=True),
+    }

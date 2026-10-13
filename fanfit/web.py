@@ -23,7 +23,7 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from fanfit.agent import OpenAICompatLLM, add_claims, llm_only_partners, resolve_with_agent
+from fanfit.agent import OpenAICompatLLM, add_claims, draft_pitch, llm_only_partners, resolve_with_agent
 from fanfit.pipeline import MAX_CARDS, Brief, Resolution, compare_with_qloo, rank_pool, resolve, shortlist
 from fanfit.presets import PRESETS
 from fanfit.qloo import QlooUnavailable, make_client
@@ -99,6 +99,19 @@ class ShortlistIn(BaseModel):
     brief: BriefIn
     brand: EntityIn | None = None
     tags: list[TagIn] = Field(default_factory=list, max_length=3)
+
+
+class CardIn(BaseModel):
+    rank: int
+    partner: EntityIn
+    affinity: float
+    evidence: dict[str, dict] = Field(max_length=40)
+
+
+class PitchIn(BaseModel):
+    brand_label: str = Field(max_length=200)
+    card: CardIn
+    others: list[str] = Field(default_factory=list, max_length=20)
 
 
 class _Stream:
@@ -218,6 +231,22 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
             return {"type": "result", "status": "ok", "cards": cards, "llm": llm_state}
 
         return _stream(work)
+
+    @app.post("/api/pitch")
+    def api_pitch(body: PitchIn, req: Request):
+        """Draft an outreach email for one card; every fact in it is an evidence-cited point."""
+        if not llm:
+            return JSONResponse({"type": "error", "code": "llm_unavailable", "message": "Pitch drafting needs the AI model, which is offline."}, status_code=503)
+        if resp := limited(req):
+            return resp
+        card = body.card.model_dump()
+        try:
+            pitch = draft_pitch(card, [card], body.brand_label, llm, foreign={n[:200] for n in body.others})
+        except Exception:  # noqa: BLE001
+            return JSONResponse({"type": "error", "code": "llm_failed", "message": "The AI model didn't answer. Try again in a moment."}, status_code=502)
+        if not pitch:
+            return JSONResponse({"type": "error", "code": "ungrounded", "message": "The draft didn't stick to the evidence, so it was discarded. Try again."}, status_code=422)
+        return {"type": "result", "pitch": pitch}
 
     @app.post("/api/compare")
     def api_compare(body: ShortlistIn, req: Request):
