@@ -4,12 +4,13 @@
 #   deploy/deploy.sh                      build + import + apply (no public hostname)
 #   APP_HOST=<host> deploy/deploy.sh      also apply the Ingress for that host
 #   deploy/deploy.sh --status             what is running
+# Needs SPARK_HOST=<ssh host of the arm64 k3s node>.
 #
 # Secrets come from ./.env (only the keys listed below) into Secret fanfit-env.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 CTX=${KCTX:-spark-k3s}
-SPARK=${SPARK_HOST:-192.168.1.21}
+SPARK=${SPARK_HOST:?set SPARK_HOST to the arm64 k3s host (ssh + sudo)}
 NS=fanfit
 k() { kubectl --context "$CTX" "$@"; }
 
