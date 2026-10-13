@@ -2,7 +2,7 @@
 
 **Sponsorship partners whose fans already love your brand, ranked by real taste data from Qloo, not follower counts.**
 
-Live demo: **https://agenticai-fanfit.brainupgrade.in** (no login) · [2-minute video](https://youtu.be/bZ3yhM44BF4) · Built for the [Qloo Agentic Hackathon](https://qloo.devpost.com/)
+Live demo: **https://agenticai-fanfit.brainupgrade.in** (no login) · [2-minute video](https://youtu.be/vmcQeReWhTA) · Built for the [Qloo Agentic Hackathon](https://qloo.devpost.com/)
 
 > Runs on **live Qloo data** (hackathon API). The ten examples on the page are real brands: Patagonia, Glossier, Oatly and seven more.
 >

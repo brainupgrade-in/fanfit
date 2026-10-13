@@ -18,7 +18,7 @@ Sponsorship partners whose fans already love your brand. An agent ranks artists,
 - **Who it's for:** brand partnership teams choosing which tour, festival stage, podcast or creator to sponsor.
 - **The result:** across 10 real brands, only **3 of the 72 partners a plain LLM suggested made FanFit's top 8** by Qloo taste affinity. On Patagonia's tour brief, none did.
 - **Two-sided:** creators flip it round. "I'm a creator" ranks the brands whose customers already love your audience (Huberman Lab → Whoop, Four Sigmatic, Oura Ring).
-- **Try it:** https://agenticai-fanfit.brainupgrade.in (no login): click an example, results stream in about 10 s. **Watch:** https://youtu.be/bZ3yhM44BF4 (2 min).
+- **Try it:** https://agenticai-fanfit.brainupgrade.in (no login): click an example, results stream in about 10 s. **Watch:** https://youtu.be/vmcQeReWhTA (2 min 20 s, includes creator mode).
 
 ## Inspiration
 Sponsorship is a huge market, from tours and festival stages to podcasts and creators, and partners are still chosen mostly by follower counts. Reach tells you how many people will see your logo, not whether they'll care. We asked an LLM "which podcasts should sponsor our hot sauce?" and got the same stereotypes you'd guess yourself. That's the gap Qloo's taste graph fills: it knows what audiences actually love, across music, podcasts, TV and brands.
