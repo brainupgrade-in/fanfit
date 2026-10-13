@@ -4,6 +4,7 @@ Response parsing lives here only, so confirming field names against live Qloo to
 """
 from __future__ import annotations
 
+import re
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
 
@@ -186,6 +187,21 @@ def shortlist(res: Resolution, brief: Brief, qloo: QlooClient, trace: list[str] 
     return cards
 
 
+def _norm(name: str) -> str:
+    n = re.sub(r"[^a-z0-9 ]", " ", name.lower())
+    n = re.sub(r"\s+", " ", n).strip()
+    return n[4:] if n.startswith("the ") else n
+
+
+def same_entity_name(a: str, b: str) -> bool:
+    """Exact after normalising, or one name is the other plus a suffix ("How I Built This" ~ "… with Guy Raz")."""
+    x, y = _norm(a), _norm(b)
+    if x == y:
+        return True
+    short, long_ = sorted((x, y), key=len)
+    return len(short) >= 8 and long_.startswith(short + " ")
+
+
 def compare_with_qloo(qloo: QlooClient, suggestions: list[dict], pool: list[dict], cards: list[dict]) -> dict:
     """Check AI-alone partner picks against Qloo (SPEC §5.4).
 
@@ -197,8 +213,8 @@ def compare_with_qloo(qloo: QlooClient, suggestions: list[dict], pool: list[dict
     matched_ids = set()
     out = []
     for sug in suggestions:
-        hits = search_entities(qloo, sug["name"][:TEXT_MAX], f"urn:entity:{sug['type']}", take=3)
-        hit = next((h for h in hits if h["name"].lower() == sug["name"].lower()), None)
+        hits = search_entities(qloo, sug["name"][:TEXT_MAX], f"urn:entity:{sug['type']}", take=5)
+        hit = next((h for h in hits if same_entity_name(h["name"], sug["name"])), None)
         if not hit:
             q = {"status": "not_found"}
         elif hit["entity_id"] in rank_of:

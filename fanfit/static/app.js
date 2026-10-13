@@ -154,9 +154,9 @@ async function runShortlist(payload) {
 let lastPayload = null;
 const STATUS = {
   shortlisted: ["In FanFit's shortlist", "ok"],
-  low: ["Qloo ranks it low for this brief", "warn"],
-  not_ranked: ["In Qloo, but not a fit for this brief", "warn"],
-  not_found: ["Not found in Qloo's taste graph", "bad"],
+  low: ["Qloo ranks it below FanFit's shortlist", "warn"],
+  not_ranked: ["In Qloo, but not in its top 20 for this brief", "warn"],
+  not_found: ["Not found in Qloo under that name", "bad"],
 };
 async function runCompare() {
   if (busy || !lastPayload) return;
@@ -178,7 +178,7 @@ function renderCompare(r) {
   const count = (st) => r.llm_only.filter((x) => x.qloo.status === st).length;
   const hit = count("shortlisted"), missing = count("not_found"), weak = count("low") + count("not_ranked");
   const summary = n
-    ? `AI alone suggested ${n} partners. Qloo's data backs ${hit}, rates ${weak} as a weak fit, and can't find ${missing} at all. FanFit surfaced ${r.qloo_only.length} partners that AI alone missed.`
+    ? `AI alone suggested ${n} partners: ${hit} made FanFit's shortlist, ${weak} rank lower in Qloo for this brief, and ${missing} weren't found under that name. FanFit surfaced ${r.qloo_only.length} partners that AI alone missed.`
     : "AI alone didn't return any usable suggestions for this brief.";
   const fmt = (q) => q.rank ? ` · rank ${q.rank} of ${q.of}, affinity ${q.affinity.toFixed(2)}` : "";
   return el("div", {},

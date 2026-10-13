@@ -58,3 +58,13 @@ def test_compare_lookups_pass_allowlist():
     n = len(q.calls)
     compare_with_qloo(q, [{"name": "A" * 40, "type": "podcast", "reason": ""}], pool, [])
     assert q.calls[n][0] == "/search" and len(q.calls[n][1]["query"]) <= 40
+
+
+def test_name_matching_is_fair_to_the_ai():
+    from fanfit.pipeline import same_entity_name
+
+    assert same_entity_name("How I Built This", "How I Built This with Guy Raz")
+    assert same_entity_name("The Lumineers", "Lumineers")
+    assert same_entity_name("Queer Eye", "Queer Eye")
+    assert not same_entity_name("Love", "Love Island")  # too short to prefix-match
+    assert not same_entity_name("The Fray", "The Frayed Knot")
