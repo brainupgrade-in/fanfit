@@ -36,6 +36,19 @@ Brands pick sponsorship partners (artists, podcasts, shows, creators) mostly by 
 
 ![The comparison panel: all 8 AI-alone picks rank below FanFit's shortlist in Qloo for this brief](docs/screenshots/4-ai-alone-vs-fanfit.png)
 
+## Reverse mode: creators find their sponsors
+
+The same engine works the other way round. Switch to **"I'm a creator"** (or open [`/#creator`](https://agenticai-fanfit.brainupgrade.in/#creator)), pick an example or enter your name (artist, podcast, TV show or creator), your fans' age band and a market. FanFit looks you up in Qloo and ranks the **brands whose customers already love your audience**:
+
+- Qloo Insights with `filter.type=urn:entity:brand` and the creator as the signal. Nonprofits are dropped (they show up as brands but don't buy sponsorships).
+- Brand cards carry Qloo's own audience description and aspirational-lifestyle themes ("Elite Athleticism", "Optimal Longevity"), and both can be cited. Brand tags are skipped because many are Wikipedia categories ("1920 establishments in Washington").
+- "Why this fit", the outreach email (now written *from the creator to the brand*) and the AI-alone comparison all follow the direction.
+- Examples: Huberman Lab (Whoop, Four Sigmatic, Huel, Oura Ring), Khruangbin (The North Face, Teva, Chaco), The Bear, Emma Chamberlain. Across the 4, 3 of the AI's 32 brand picks made FanFit's top 8.
+
+![Creator mode: brands ranked for the Huberman Lab podcast, with Qloo's description of Whoop's customers highlighted by a hovered citation](docs/screenshots/5-creator-mode.png)
+
+Typed free-text briefs are brand-side only for now; creators use the form.
+
 ## How Qloo is used
 
 | Step | Qloo API call | Why |
@@ -44,6 +57,7 @@ Brands pick sponsorship partners (artists, podcasts, shows, creators) mostly by 
 | Category words → taste tags | `GET /v2/tags?filter.query=<word>` | An extra signal, or the only one when the brand isn't in Qloo |
 | Rank partners | `GET /v2/insights` with `filter.type=urn:entity:{artist,podcast,tv_show,person}`, `signal.interests.entities=<brand>`, `signal.interests.tags=<tags>`, `signal.demographics.age=<band>`, `signal.location.query=<market>` | The core ranking: whose audience over-indexes on this brand's taste, for this age band and market |
 | Audience age profile | `GET /v2/insights` with `filter.type=urn:demographics` | Is the partner's audience over-indexed with the target band (−1..1) |
+| Rank brands for a creator (reverse mode) | `GET /search?types=urn:entity:{artist,podcast,tv_show,person}`, then `GET /v2/insights` with `filter.type=urn:entity:brand`, `signal.interests.entities=<creator>`, age and market | Which brands' customers over-index on this creator's audience |
 | Check AI-alone picks | `GET /search` per suggested name | Shows what an LLM picks without taste data, and where Qloo ranks those picks |
 
 Base URL `https://hackathon.api.qloo.com`, header `X-Api-Key`. What we learned from the live API (and what we dropped: heatmap, trending) is in [`docs/datacheck.md`](docs/datacheck.md).
@@ -106,9 +120,9 @@ Deploy (k3s on an arm64 host, no registry): `APP_HOST=<host> deploy/deploy.sh`. 
 
 ## Status
 
-- ✅ Live Qloo data, real-brand presets, agent, evidence cards, grounding validator, pitch drafting, AI-alone comparison, public deployment, uptime monitoring
+- ✅ Live Qloo data, real-brand presets, agent, evidence cards, grounding validator, pitch drafting, AI-alone comparison, reverse mode (creator → brands), public deployment, uptime monitoring
 - A fresh brief takes about 13–18 s end to end (Qloo about 4.5 s, the rest is LLM claims); a cached preset about 10 s.
-- After the hackathon key expires, the deployment switches to `QLOO_MODE=replay`: the cached presets keep working, while uncached free-text briefs get a clear message.
+- After the hackathon key expires, the deployment switches to `QLOO_MODE=replay`: all 14 cached examples (10 brand, 4 creator) keep working, while uncached free-text briefs get a clear message.
 
 ## Known limitations
 

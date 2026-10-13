@@ -1,6 +1,6 @@
 # Plan: Reverse mode (creator → brands)
 
-**Status:** PHASE 1 · started 2026-10-13
+**Status:** SHIPPED 2026-10-13 (commit 8396436)
 
 ## Use cases
 - **Creator / talent manager** (an indie band, a podcast, a show, a creator): "Which brands should I pitch, and what do I put in the pitch?"
@@ -23,10 +23,10 @@
 ## Phases
 - [x] Phase 0 — spike on live Qloo (4 creators): sensible brands, `properties` carry brand_type / business_model /
       audience_identity / aspirational_lifestyle; nonprofits appear (Trevor Project, NOH8) → filter.
-- [ ] Phase 1 — pipeline: `subject_type`, brand partners, nonprofit filter, brand evidence. Tests first.
-- [ ] Phase 2 — prompts: direction-aware claims, pitch and AI-alone baseline. Tests first.
-- [ ] Phase 3 — web + UI: creator presets, form, labels; `/api/config` lists both preset sets.
-- [ ] Phase 4 — live check in Chrome, warm the cache (replay), deploy, README/Devpost.
+- [x] Phase 1 — pipeline: `subject_type`, brand partners, nonprofit filter, brand evidence. Tests first.
+- [x] Phase 2 — prompts: direction-aware claims, pitch and AI-alone baseline. Tests first.
+- [x] Phase 3 — web + UI: creator presets, form, labels; `/api/config` lists both preset sets.
+- [x] Phase 4 — live check in Chrome, warm the cache (replay), deploy, README/Devpost.
 
 ## Test plan
 - TDD (fixtures/stubs): resolve searches the subject type; brand partners come back as cards; nonprofits dropped;
@@ -40,3 +40,7 @@
 ## Progress log
 - 2026-10-13: spike done (see Phase 0). Wrong earlier assumption from `docs/datacheck.md` ("brands have no tags"):
   brand results do carry tags and rich `properties`.
+- 2026-10-13: shipped. 67 tests. Verified in Chrome (desktop, dark; 400 px headless): creator examples, email, compare,
+  brand mode unchanged. Deployed; the 4 creator examples warmed live and replayed with no key (14/14). Brand-side saved
+  AI-alone files kept their names (test added): still 3 of 72. Creator side: 3 of 32. Known limit: the email can still
+  add colour about the creator ("Khruangbin's music evokes…") inside a cited point; the validator checks citations, not that.

@@ -17,6 +17,7 @@ Sponsorship partners whose fans already love your brand. An agent ranks artists,
 ## In 30 seconds
 - **Who it's for:** brand partnership teams choosing which tour, festival stage, podcast or creator to sponsor.
 - **The result:** across 10 real brands, only **3 of the 72 partners a plain LLM suggested made FanFit's top 8** by Qloo taste affinity. On Patagonia's tour brief, none did.
+- **Two-sided:** creators flip it round. "I'm a creator" ranks the brands whose customers already love your audience (Huberman Lab → Whoop, Four Sigmatic, Oura Ring).
 - **Try it:** https://agenticai-fanfit.brainupgrade.in (no login): click an example, results stream in about 10 s. **Watch:** https://youtu.be/bZ3yhM44BF4 (2 min).
 
 ## Inspiration
@@ -29,6 +30,7 @@ Sponsorship is a huge market, from tours and festival stages to podcasts and cre
   - the partner's own Qloo taste tags ("their audience is into…");
   - how strongly their audience over- or under-indexes with your age band;
   - whether the ranking used your target market as a location signal.
+- **Reverse mode: creators find their sponsors.** Switch to "I'm a creator" (or open `/#creator`). An artist, podcast, show or creator gets the brands whose customers over-index on their audience: Qloo Insights with `filter.type=urn:entity:brand`, nonprofits dropped, and Qloo's own audience description and lifestyle themes as card evidence. The claims, the email (now from the creator to the brand) and the AI-alone check all follow the direction. Across the 4 creator examples, 3 of the AI's 32 brand picks made FanFit's top 8.
 - **Grounded "why this fit."** Every AI-written line cites the card evidence it rests on, and a validator removes anything that doesn't. Hover a citation to see the exact data behind it.
 - **One-click outreach email.** It's built only from evidence that supports the deal, with every fact cited.
 - **"Would AI alone get this right?"** The same brief and the same model, without Qloo. FanFit checks each of the AI's picks against Qloo and shows where Qloo ranks them, plus the partners only FanFit found. Across our 10 live examples (saved runs, 13 Oct 2026), **only 3 of the AI's 72 picks made FanFit's top 8**. For Patagonia's tour, none did: the AI picked The Lumineers (Qloo rank #13 for the brief) and Maggie Rogers (#15). Qloo's top picks were Houndmouth, Caamp and Mt. Joy, whose audiences over-index on Patagonia and with 30–34 year olds.
@@ -45,7 +47,7 @@ Sponsorship is a huge market, from tours and festival stages to podcasts and cre
   - "strong", "high" or "top" without a quoted value;
   - the age affinity index turned into a percentage of the audience.
 - **Backend:** FastAPI streams the agent's steps live to the page (NDJSON). Qloo access goes through one client with three modes: fixture, live with a disk cache, and replay, so the demo survives after the key expires. A parameter allowlist means nothing the user types reaches Qloo verbatim.
-- **Hosting:** k3s on an NVIDIA DGX Spark behind a Cloudflare tunnel. Plain HTML/JS with no framework. 56 tests.
+- **Hosting:** k3s on an NVIDIA DGX Spark behind a Cloudflare tunnel. Plain HTML/JS with no framework. 67 tests.
 
 ## Challenges we ran into
 - **Keeping an LLM honest about data.** The model happily turned a regional affinity score into "a large portion of listeners live in Denver", and pitched weak evidence as a strength. Prompting alone didn't fix it; a validator with explicit rules and passing only supportive evidence to the pitch writer did.
@@ -61,7 +63,7 @@ Sponsorship is a huge market, from tours and festival stages to podcasts and cre
 Taste data changes the question from "who is big?" to "whose fans already like what we sell?", and an agent is the right shape for it: resolving fuzzy briefs into entities is the hard part, and it's exactly what tool use is good at.
 
 ## What's next
-- **Reverse mode:** creators enter their show and get the brands most likely to say yes. Same engine, `filter.type=urn:entity:brand`.
+- **Free-text briefs for creators** (today creators use the form), and matching both sides: brands see the creators who'd say yes.
 - **Commercial case for Qloo:**
   - **Agencies and talent agencies:** a per-seat workflow product, where each brief drives several Qloo calls.
   - **Creators:** a self-serve tier, a long-tail market Qloo doesn't reach today.
@@ -74,6 +76,7 @@ qloo-api, python, fastapi, nvidia-nemotron, nebius-token-factory, kubernetes, k3
 Open the demo URL; no login. Click any example on the left; results stream in about 10 s. Then:
 - hover a citation chip on a card to see its evidence;
 - click **Draft outreach email** on a card;
-- scroll down and click **Compare with AI alone**.
+- scroll down and click **Compare with AI alone**;
+- switch to **I'm a creator** (or open https://agenticai-fanfit.brainupgrade.in/#creator) and pick Huberman Lab to see brands ranked for a creator.
 
-Or type your own brief in "Describe it". The demo runs on live Qloo data. If the hackathon key is deactivated before judging ends, all 10 examples are served from cached Qloo responses, typed briefs are switched off, and a banner says so.
+Or type your own brief in "Describe it". The demo runs on live Qloo data. If the hackathon key is deactivated before judging ends, all 14 examples (10 brand, 4 creator) are served from cached Qloo responses, typed briefs are switched off, and a banner says so.
