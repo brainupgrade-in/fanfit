@@ -1,0 +1,50 @@
+# Uptime check for the public FanFit demo; it must stay up until judging ends (2026-11-16).
+# Alerts route through the existing NUC Alertmanager: critical goes to Telegram + email.
+apiVersion: monitoring.coreos.com/v1
+kind: Probe
+metadata:
+  name: fanfit
+  namespace: observability
+  labels:
+    release: kube-prometheus-stack
+spec:
+  jobName: fanfit
+  interval: 60s
+  module: http_2xx
+  prober:
+    url: blackbox-exporter.observability.svc:9115
+  targets:
+    staticConfig:
+      static:
+        - https://agenticai-fanfit.brainupgrade.in/api/config
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: fanfit
+  namespace: observability
+  labels:
+    release: kube-prometheus-stack
+spec:
+  groups:
+    - name: fanfit
+      rules:
+        - alert: FanFitDemoDown
+          expr: probe_success{job="fanfit"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: FanFit hackathon demo is down
+            description: >-
+              https://agenticai-fanfit.brainupgrade.in has failed its probe for 5 minutes (blackbox from the NUC).
+              Qloo judging runs until 2026-11-16. Check: kubectl --context spark-k3s -n fanfit get pods; DNS CNAME to the
+              spark-k3s tunnel; Cloudflare page rule (agenticai* prefix).
+        - alert: FanFitProbeMissing
+          expr: absent(probe_success{job="fanfit"})
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: FanFit uptime probe isn't reporting
+            description: No probe_success series for job=fanfit. Is the blackbox exporter running in ns observability on the NUC?
