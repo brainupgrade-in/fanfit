@@ -178,7 +178,7 @@ function renderCompare(r) {
   const count = (st) => r.llm_only.filter((x) => x.qloo.status === st).length;
   const hit = count("shortlisted"), missing = count("not_found"), weak = count("low") + count("not_ranked");
   const summary = n
-    ? `AI alone suggested ${n} partners: ${hit} made FanFit's shortlist, ${weak} rank lower in Qloo for this brief, and ${missing} weren't found under that name. FanFit surfaced ${r.qloo_only.length} partners that AI alone missed.`
+    ? `AI alone suggested ${n} partners: ${hit} made FanFit's shortlist, ${weak} ${weak === 1 ? "ranks" : "rank"} lower in Qloo for this brief, and ${missing} ${missing === 1 ? "wasn't" : "weren't"} found under that name. FanFit surfaced ${r.qloo_only.length} partners that AI alone missed.`
     : "AI alone didn't return any usable suggestions for this brief.";
   const fmt = (q) => q.rank ? ` · rank ${q.rank} of ${q.of}, affinity ${q.affinity.toFixed(2)}` : "";
   return el("div", {},
