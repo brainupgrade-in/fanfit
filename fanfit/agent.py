@@ -153,3 +153,25 @@ def add_claims(cards: list[dict], brand_label: str, llm: LLM) -> bool:
             c["claims"] = []
         return False
     return True
+
+
+BASELINE_SYSTEM = """You are a sponsorship strategist. Suggest real sponsorship partners for the brief.
+Return JSON: {"partners": [{"name": "...", "type": "artist|podcast|tv_show|person", "reason": "one short sentence"}]}.
+Suggest up to 8, only of the requested types. Use exact, well-known names."""
+
+
+def llm_only_partners(brand_label: str, brief: Brief, llm: LLM) -> list[dict]:
+    """The AI-alone baseline for the comparison panel: same brief and model, no Qloo tools."""
+    b = brief.clean()
+    ask = {"brand": brand_label, "categories": b.category_terms, "age_band": b.age, "market": b.market, "partner_types": b.partner_types}
+    msg = llm.chat([{"role": "system", "content": BASELINE_SYSTEM}, {"role": "user", "content": json.dumps(ask)}], json_mode=True)
+    try:
+        raw = json.loads(msg.get("content") or "{}").get("partners", [])
+    except json.JSONDecodeError:
+        return []
+    out = []
+    for p in raw[:8]:
+        name, ptype = str(p.get("name", "")).strip(), p.get("type")
+        if name and len(name) <= 40 and ptype in b.partner_types:
+            out.append({"name": name, "type": ptype, "reason": str(p.get("reason", ""))[:200]})
+    return out

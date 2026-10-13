@@ -22,8 +22,8 @@ from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
-from fanfit.agent import OpenAICompatLLM, add_claims, resolve_with_agent
-from fanfit.pipeline import Brief, Resolution, resolve, shortlist
+from fanfit.agent import OpenAICompatLLM, add_claims, llm_only_partners, resolve_with_agent
+from fanfit.pipeline import MAX_CARDS, Brief, Resolution, compare_with_qloo, rank_pool, resolve, shortlist
 from fanfit.presets import PRESETS
 from fanfit.qloo import QlooUnavailable, make_client
 
@@ -175,19 +175,25 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
 
         return _stream(work)
 
+    def _confirmed(body: ShortlistIn) -> tuple[Brief, Resolution]:
+        res = Resolution(
+            brand=body.brand.model_dump() if body.brand else None,
+            brand_candidates=[],
+            tags=[t.model_dump() for t in body.tags],
+            unresolved=[],
+        )
+        return Brief(**body.brief.model_dump()).clean(), res
+
+    def _label(res: Resolution) -> str:
+        return res.brand["name"] if res.brand else ", ".join(t["name"] for t in res.tags)
+
     @app.post("/api/shortlist")
     def api_shortlist(body: ShortlistIn, req: Request):
         if resp := limited(req):
             return resp
 
         def work(s: _Stream):
-            brief = Brief(**body.brief.model_dump()).clean()
-            res = Resolution(
-                brand=body.brand.model_dump() if body.brand else None,
-                brand_candidates=[],
-                tags=[t.model_dump() for t in body.tags],
-                unresolved=[],
-            )
+            brief, res = _confirmed(body)
             if not res.brand and not res.tags:
                 return {"type": "error", "code": "bad_request", "message": "Confirm a brand or at least one category first."}
             s.append("Ranking partners by Qloo taste affinity…")
@@ -197,9 +203,33 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
             llm_state = "off"
             if llm:
                 s.append(f"Writing evidence-backed rationale for {len(cards)} partners…")
-                label = res.brand["name"] if res.brand else ", ".join(t["name"] for t in res.tags)
-                llm_state = "ok" if add_claims(cards, label, llm) else "failed"
+                llm_state = "ok" if add_claims(cards, _label(res), llm) else "failed"
             return {"type": "result", "status": "ok", "cards": cards, "llm": llm_state}
+
+        return _stream(work)
+
+    @app.post("/api/compare")
+    def api_compare(body: ShortlistIn, req: Request):
+        """Qloo vs. AI alone (SPEC §5.4): same brief, same model, no Qloo tools; then check its picks in Qloo."""
+        if not llm:
+            return JSONResponse({"type": "error", "code": "llm_unavailable", "message": "The comparison needs the AI model, which is offline."}, status_code=503)
+        if resp := limited(req):
+            return resp
+
+        def work(s: _Stream):
+            brief, res = _confirmed(body)
+            if not res.brand and not res.tags:
+                return {"type": "error", "code": "bad_request", "message": "Confirm a brand or at least one category first."}
+            s.append("Asking the same AI model for partners, with no Qloo data…")
+            try:
+                suggestions = llm_only_partners(_label(res), brief, llm)
+            except Exception:  # noqa: BLE001
+                return {"type": "error", "code": "llm_failed", "message": "The AI model didn't answer. Try again in a moment."}
+            s.append(f"AI alone suggested {len(suggestions)} partners. Checking each one in Qloo…")
+            pool = rank_pool(res, brief, qloo)
+            cards = [{"rank": i, "partner": {k: c[k] for k in ("entity_id", "name", "type")}, "affinity": c["affinity"]}
+                     for i, c in enumerate(pool[:MAX_CARDS], 1)]
+            return {"type": "result", **compare_with_qloo(qloo, suggestions, pool, cards)}
 
         return _stream(work)
 

@@ -73,7 +73,7 @@ function setBusy(b) {
 async function runResolve(payload, { autoConfirm = false } = {}) {
   if (busy) return;
   setBusy(true); notice(null);
-  $("#cards").replaceChildren(); $("#confirm").hidden = true; $("#footnote").hidden = true;
+  $("#cards").replaceChildren(); $("#confirm").hidden = true; $("#footnote").hidden = true; $("#compare").hidden = true;
   traceReset();
   traceRunning(payload.preset ? "Loading example brief…" : "Starting…");
   const r = await stream("/api/resolve", payload, traceRunning);
@@ -129,7 +129,7 @@ async function runShortlist(payload) {
   if (busy) return;
   if (!payload.brand && !payload.tags.length) { notice("Keep a brand or at least one taste tag to search with.", "error"); return; }
   setBusy(true); notice(null);
-  $("#confirm").hidden = true; $("#cards").replaceChildren();
+  $("#confirm").hidden = true; $("#cards").replaceChildren(); $("#compare").hidden = true;
   traceRunning("Asking Qloo for partner affinities…");
   const r = await stream("/api/shortlist", payload, traceRunning);
   traceDone();
@@ -143,7 +143,67 @@ async function runShortlist(payload) {
   else if (r.llm === "off") notice("AI rationale is off on this server, so the cards show the Qloo evidence only.");
   renderCards(r.cards, payload.brief);
   $("#footnote").hidden = false;
+  lastPayload = payload;
+  $("#compare-out").replaceChildren();
+  $("#compare-btn").hidden = false;
+  $("#compare").hidden = !config.llm;
 }
+
+// ---------- Qloo vs. AI alone ----------
+let lastPayload = null;
+const STATUS = {
+  shortlisted: ["In FanFit's shortlist", "ok"],
+  low: ["Qloo ranks it low for this brief", "warn"],
+  not_ranked: ["In Qloo, but not a fit for this brief", "warn"],
+  not_found: ["Not found in Qloo's taste graph", "bad"],
+};
+async function runCompare() {
+  if (busy || !lastPayload) return;
+  setBusy(true); $("#compare-btn").disabled = true;
+  const out = $("#compare-out");
+  const steps = el("ol", { class: "trace" });
+  out.replaceChildren(steps);
+  const step = (t) => { steps.querySelector("li.running")?.classList.remove("running"); steps.append(el("li", { class: "running", text: t })); };
+  step("Starting comparison…");
+  const r = await stream("/api/compare", lastPayload, step);
+  steps.querySelector("li.running")?.classList.remove("running");
+  setBusy(false); $("#compare-btn").disabled = false;
+  if (r.type === "error") { out.append(el("div", { class: "notice error", text: r.message })); return; }
+  $("#compare-btn").hidden = true;
+  out.replaceChildren(renderCompare(r));
+}
+function renderCompare(r) {
+  const n = r.llm_only.length;
+  const count = (st) => r.llm_only.filter((x) => x.qloo.status === st).length;
+  const hit = count("shortlisted"), missing = count("not_found"), weak = count("low") + count("not_ranked");
+  const summary = n
+    ? `AI alone suggested ${n} partners. Qloo's data backs ${hit}, rates ${weak} as a weak fit, and can't find ${missing} at all. FanFit surfaced ${r.qloo_only.length} partners that AI alone missed.`
+    : "AI alone didn't return any usable suggestions for this brief.";
+  const fmt = (q) => q.rank ? ` · rank ${q.rank} of ${q.of}, affinity ${q.affinity.toFixed(2)}` : "";
+  return el("div", {},
+    el("p", { class: "compare-summary", text: summary }),
+    config.qloo_mode === "fixture"
+      ? el("p", { class: "notice", text: "Demo mode: the sample data only contains fictional entities, so real names the AI suggests can't be found. With live Qloo data they're looked up and ranked." })
+      : null,
+    el("div", { class: "compare-grid" },
+      el("div", {},
+        el("h4", { text: "AI alone (no taste data)" }),
+        el("ul", { class: "cmp-list" }, r.llm_only.map((x) => {
+          const [label, kind] = STATUS[x.qloo.status];
+          return el("li", {},
+            el("strong", { text: x.name }), " ", el("span", { class: "type", text: TYPE_LABEL[x.type] || x.type }),
+            el("div", { class: `status ${kind}`, text: label + fmt(x.qloo) }),
+            x.reason ? el("div", { class: "hint", text: `AI's reason: ${x.reason}` }) : null);
+        }))),
+      el("div", {},
+        el("h4", { text: "Only FanFit found" }),
+        r.qloo_only.length
+          ? el("ul", { class: "cmp-list" }, r.qloo_only.map((x) => el("li", {},
+              el("strong", { text: x.name }), " ", el("span", { class: "type", text: TYPE_LABEL[typeKey(x.type)] || typeKey(x.type) }),
+              el("div", { class: "status ok", text: `Rank #${x.rank} · Qloo affinity ${x.affinity.toFixed(2)}` }))))
+          : el("p", { class: "hint", text: "AI alone found all of FanFit's picks this time." }))));
+}
+$("#compare-btn").addEventListener("click", runCompare);
 
 // ---------- cards ----------
 function renderCards(cards, brief) {

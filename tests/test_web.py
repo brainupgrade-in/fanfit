@@ -116,3 +116,30 @@ def test_global_daily_cap():
     lim = RateLimiter(per_ip_hour=100, global_day=2)
     assert lim.allow("a") is None and lim.allow("b") is None
     assert "daily limit" in lim.allow("c")
+
+
+class BaselineLLM(ClaimsLLM):
+    """Answers the baseline prompt with one fixture partner and one unknown name."""
+
+    def chat(self, messages, tools=None, json_mode=False):
+        if "sponsorship strategist" in messages[0]["content"]:
+            return {"content": json.dumps({"partners": [
+                {"name": "Juniper Ash", "type": "artist", "reason": "indie coffeehouse sound"},
+                {"name": "Taylor Swift", "type": "artist", "reason": "huge reach"},
+            ]})}
+        return super().chat(messages, tools, json_mode)
+
+
+def test_compare_endpoint():
+    c = client(llm=BaselineLLM())
+    res = events(c.post("/api/compare", json=shortlist_body(resolve_preset(c))))[-1]
+    assert res["type"] == "result"
+    st = {s["name"]: s["qloo"]["status"] for s in res["llm_only"]}
+    assert st["Taylor Swift"] == "not_found" and st["Juniper Ash"] in {"shortlisted", "low"}
+    assert res["qloo_only"]
+
+
+def test_compare_needs_llm():
+    c = client()
+    r = c.post("/api/compare", json=shortlist_body(resolve_preset(c)))
+    assert r.status_code == 503 and r.json()["code"] == "llm_unavailable"

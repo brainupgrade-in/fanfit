@@ -157,7 +157,8 @@ def build_card(rank: int, c: dict, brief: Brief, geo: list[dict], demo: dict, tr
     return {"rank": rank, "partner": {k: c[k] for k in ("entity_id", "name", "type")}, "affinity": c["affinity"], "evidence": ev, "claims": []}
 
 
-def shortlist(res: Resolution, brief: Brief, qloo: QlooClient, trace: list[str] | None = None) -> list[dict]:
+def rank_pool(res: Resolution, brief: Brief, qloo: QlooClient, trace: list[str] | None = None) -> list[dict]:
+    """All candidates for the brief across partner types, best Qloo affinity first."""
     brief = brief.clean()
     trace = trace if trace is not None else []
     pool = []
@@ -165,7 +166,13 @@ def shortlist(res: Resolution, brief: Brief, qloo: QlooClient, trace: list[str] 
         found = find_partners(qloo, res, brief, ptype)
         trace.append(f"Qloo insights: {len(found)} {ptype} candidates")
         pool += found
-    pool = sorted((c for c in pool if c["affinity"] is not None), key=lambda c: -c["affinity"])[:MAX_CARDS]
+    return sorted((c for c in pool if c["affinity"] is not None), key=lambda c: -c["affinity"])
+
+
+def shortlist(res: Resolution, brief: Brief, qloo: QlooClient, trace: list[str] | None = None) -> list[dict]:
+    brief = brief.clean()
+    trace = trace if trace is not None else []
+    pool = rank_pool(res, brief, qloo, trace)[:MAX_CARDS]
     cards = []
     for i, c in enumerate(pool, 1):
         geo, demo, pts = [], {}, []
@@ -178,3 +185,31 @@ def shortlist(res: Resolution, brief: Brief, qloo: QlooClient, trace: list[str] 
         cards.append(build_card(i, c, brief, geo, demo, pts))
     trace.append(f"Built {len(cards)} fit cards")
     return cards
+
+
+def compare_with_qloo(qloo: QlooClient, suggestions: list[dict], pool: list[dict], cards: list[dict]) -> dict:
+    """Check AI-alone partner picks against Qloo (SPEC §5.4).
+
+    Status per suggestion: shortlisted (in FanFit's cards), low (Qloo ranks it below the shortlist),
+    not_ranked (in Qloo but not a candidate for this brief), not_found (Qloo has no such entity).
+    """
+    rank_of = {c["entity_id"]: i for i, c in enumerate(pool, 1)}
+    by_id = {c["entity_id"]: c for c in pool}
+    matched_ids = set()
+    out = []
+    for sug in suggestions:
+        hits = search_entities(qloo, sug["name"][:TEXT_MAX], f"urn:entity:{sug['type']}", take=3)
+        hit = next((h for h in hits if h["name"].lower() == sug["name"].lower()), None)
+        if not hit:
+            q = {"status": "not_found"}
+        elif hit["entity_id"] in rank_of:
+            matched_ids.add(hit["entity_id"])
+            r = rank_of[hit["entity_id"]]
+            q = {"status": "shortlisted" if r <= len(cards) else "low", "rank": r, "of": len(pool),
+                 "affinity": by_id[hit["entity_id"]]["affinity"]}
+        else:
+            q = {"status": "not_ranked"}
+        out.append({**sug, "qloo": q})
+    qloo_only = [{"name": c["partner"]["name"], "type": c["partner"]["type"], "rank": c["rank"], "affinity": c["affinity"]}
+                 for c in cards if c["partner"]["entity_id"] not in matched_ids]
+    return {"llm_only": out, "qloo_only": qloo_only}
