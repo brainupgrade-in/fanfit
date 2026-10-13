@@ -128,6 +128,19 @@ def test_age_index_is_not_described_as_a_share():
     assert [c["text"] for c in kept] == [claims[2]["text"]]
 
 
+def test_age_index_is_not_tied_to_the_market():
+    card = {"partner": {"name": "A"}, "evidence": {
+        "demo:30_to_34": {"value": 0.56}, "market": {"value": "Denver"}, "affinity": {"value": 0.98}}}
+    claims = [
+        {"text": "In Denver, the audience skews 30-34 (+0.56).", "evidence_ids": ["demo:30_to_34", "market"]},
+        {"text": "Denver fans over-index with 30-34 year olds (+0.56).", "evidence_ids": ["demo:30_to_34"]},
+        {"text": "It over-indexes with 30-34 year olds (+0.56).", "evidence_ids": ["demo:30_to_34"]},
+        {"text": "Ranked for Denver with an affinity of 0.98.", "evidence_ids": ["affinity", "market"]},
+    ]
+    kept = validate_claims(card, claims, set())
+    assert [c["text"] for c in kept] == [claims[2]["text"], claims[3]["text"]]
+
+
 def test_foreign_names_match_whole_words_only():
     card = {"partner": {"name": "A"}, "evidence": {"affinity": {"value": 0.5}}}
     kept = validate_claims(card, [{"text": "A popular pick (0.50).", "evidence_ids": ["affinity"]},

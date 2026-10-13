@@ -33,6 +33,9 @@ def validate_claims(card: dict, claims: list[dict], foreign_names: set[str]) -> 
             continue
         if all(i.startswith("demo:") for i in ids) and _SHARE.search(text):
             continue
+        # the age index is the partner's overall profile, not the market's
+        if any(i.startswith("demo:") for i in ids) and "market" in ev and _mentions(text, str(ev["market"]["value"])):
+            continue
         kept.append({"text": text, "evidence_ids": ids})
     return kept
 
