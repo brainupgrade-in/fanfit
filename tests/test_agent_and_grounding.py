@@ -128,17 +128,24 @@ def test_age_index_is_not_described_as_a_share():
     assert [c["text"] for c in kept] == [claims[2]["text"]]
 
 
-def test_age_index_is_not_tied_to_the_market():
-    card = {"partner": {"name": "A"}, "evidence": {
-        "demo:30_to_34": {"value": 0.56}, "market": {"value": "Denver"}, "affinity": {"value": 0.98}}}
+def test_profile_evidence_is_not_tied_to_the_market():
+    card = {"partner": {"name": "A"}, "evidence": {"demo:30_to_34": {"value": 0.56}, "market": {"value": "Denver"},
+                                                   "affinity": {"value": 0.98}, "taste:t1": {"value": "Indie"}}}
     claims = [
         {"text": "In Denver, the audience skews 30-34 (+0.56).", "evidence_ids": ["demo:30_to_34", "market"]},
         {"text": "Denver fans over-index with 30-34 year olds (+0.56).", "evidence_ids": ["demo:30_to_34"]},
+        {"text": "In Denver, fans are into Indie.", "evidence_ids": ["taste:t1", "market"]},
         {"text": "It over-indexes with 30-34 year olds (+0.56).", "evidence_ids": ["demo:30_to_34"]},
         {"text": "Ranked for Denver with an affinity of 0.98.", "evidence_ids": ["affinity", "market"]},
     ]
     kept = validate_claims(card, claims, set())
-    assert [c["text"] for c in kept] == [claims[2]["text"], claims[3]["text"]]
+    assert [c["text"] for c in kept] == [claims[3]["text"], claims[4]["text"]]
+
+
+def test_raw_scores_are_rounded():
+    card = {"partner": {"name": "A"}, "evidence": {"affinity": {"value": 0.9805}}}
+    kept = validate_claims(card, [{"text": "An affinity of 0.9805 with the brand.", "evidence_ids": ["affinity"]}], set())
+    assert kept[0]["text"] == "An affinity of 0.98 with the brand."
 
 
 def test_foreign_names_match_whole_words_only():

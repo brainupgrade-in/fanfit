@@ -8,6 +8,7 @@ _STRENGTH = re.compile(r"\b(strong(ly)?|high(ly|er|est)?|very|top|best|most|sign
 _MEASURE = re.compile(r"\d*\.\d+|\d+(\.\d+)?\s*%")
 # Age evidence is an over/under-indexing score (-1..1), not a share of the audience.
 _SHARE = re.compile(r"%|\bpercent|\bshare\b|\bportion\b|\bmajority\b|\bmost of\b|\bhalf\b", re.I)
+_LONG_DECIMAL = re.compile(r"\d+\.\d{3,}")  # raw scores like 0.9805 are shown rounded, as on the card
 
 
 def _mentions(text: str, name: str) -> bool:
@@ -33,10 +34,10 @@ def validate_claims(card: dict, claims: list[dict], foreign_names: set[str]) -> 
             continue
         if all(i.startswith("demo:") for i in ids) and _SHARE.search(text):
             continue
-        # the age index is the partner's overall profile, not the market's
-        if any(i.startswith("demo:") for i in ids) and "market" in ev and _mentions(text, str(ev["market"]["value"])):
+        # only the ranking used the market; age and taste evidence are the partner's overall profile
+        if "market" in ev and _mentions(text, str(ev["market"]["value"])) and not set(ids) <= {"market", "affinity"}:
             continue
-        kept.append({"text": text, "evidence_ids": ids})
+        kept.append({"text": _LONG_DECIMAL.sub(lambda m: f"{float(m.group()):.2f}", text), "evidence_ids": ids})
     return kept
 
 
