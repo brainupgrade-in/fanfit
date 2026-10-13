@@ -111,3 +111,19 @@ def test_add_claims_runs_every_card_and_reports_llm_failure():
     cards = _cards()
     assert add_claims(cards, "Northbound Cold Brew", Down()) is False
     assert all(c["claims"] == [] for c in cards)
+
+
+def test_regional_affinity_is_not_described_as_where_fans_live():
+    cards = _cards()
+    card = cards[0]
+    geo = next(k for k in card["evidence"] if k.startswith("geo:"))
+    region = card["evidence"][geo]["value"]
+    from fanfit.grounding import foreign_names_for
+
+    claims = [
+        {"text": f"A large portion of listeners are located in {region} (0.92).", "evidence_ids": [geo]},
+        {"text": f"Most fans live in {region}.", "evidence_ids": [geo]},
+        {"text": f"Qloo shows strong taste affinity in {region} (0.92).", "evidence_ids": [geo]},
+    ]
+    kept = validate_claims(card, claims, foreign_names_for(card, cards))
+    assert [c["text"] for c in kept] == [claims[2]["text"]]

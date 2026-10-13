@@ -236,7 +236,7 @@ function renderCard(c, brief) {
                     : el("p", { class: "hint", text: "No shared tags reported." }),
         demo ? el("p", { class: "hint", "data-ev": demo[0], text: `${Math.round(demo[1].value * 100)}% of this audience is ${AGE_LABEL[demo[0].slice(5)]}` }) : null),
       el("div", { class: "ev" },
-        el("h4", { text: "Where the audience is" }),
+        el("h4", { text: "Strongest regional affinity" }),
         geo.length ? el("ul", { class: "regions" }, geo.map(([k, v]) =>
           el("li", { "data-ev": k, class: v.value.toLowerCase() === market ? "target" : "" },
             el("span", { text: v.value + (v.value.toLowerCase() === market ? " ★" : "") }),

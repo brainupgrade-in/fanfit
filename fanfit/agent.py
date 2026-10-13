@@ -120,13 +120,22 @@ def _finish(args, seen_brands, seen_tags, unresolved) -> tuple[Brief, Resolution
     return brief, Resolution(brand=brand, brand_candidates=list(seen_brands.values()), tags=tags, unresolved=unresolved)
 
 
+EVIDENCE_GUIDE = """How to read the evidence:
+- affinity: Qloo's 0-1 score for how strongly the partner's audience shares the brand's taste signal.
+- tag:*: taste tags the partner's audience shares with the brand.
+- geo:*: regional taste affinity, i.e. how strongly the partner over-indexes in that region. It is NOT where fans live
+  and NOT a share of the audience. Say "strong regional affinity in Denver (0.92)", never "listeners are located in".
+- demo:*: the share of the partner's audience in the target age band (a real percentage).
+- trend: change in the partner's popularity rank over 6 months (positive = rising)."""
+
 CLAIMS_SYSTEM = """You explain why a sponsorship partner fits a brand, using ONLY the evidence given.
 Return JSON: {"claims": [{"text": "...", "evidence_ids": ["<key from evidence>"]}]}.
 2-4 claims, one sentence each. Every claim must cite at least one evidence key.
 Do not mention any fact, partner, tag, number or place that is not in the evidence.
 If you call something strong, high or top, quote its value (e.g. "affinity 0.42", "18% of fans").
 The partner is the given partner_type (an artist, podcast, show or creator), NOT a brand: refer to it by name.
-Write for a brand marketer: plain words, numbers rounded to 2 decimals, shares as percentages."""
+Write for a brand marketer: plain words, numbers rounded to 2 decimals, shares as percentages.
+""" + EVIDENCE_GUIDE
 
 
 def write_claims(card: dict, cards: list[dict], brand_label: str, llm: LLM) -> list[dict]:

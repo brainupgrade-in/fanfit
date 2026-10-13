@@ -147,7 +147,7 @@ def build_card(rank: int, c: dict, brief: Brief, geo: list[dict], demo: dict, tr
     for t in c["shared_tags"]:
         ev[f"tag:{t['id']}"] = {"label": "Shared taste tag", "value": t["name"]}
     for g in geo:
-        ev[f"geo:{g['region']}"] = {"label": "Audience region", "value": g["region"], "affinity": g["affinity"]}
+        ev[f"geo:{g['region']}"] = {"label": "Regional taste affinity (not where fans live)", "value": g["region"], "affinity": g["affinity"]}
     ages = demo.get("age") or {}
     if brief.age and brief.age in ages:
         ev[f"demo:{brief.age}"] = {"label": "Share in target age band", "value": ages[brief.age]}
