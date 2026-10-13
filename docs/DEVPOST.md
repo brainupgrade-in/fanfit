@@ -21,10 +21,9 @@ Sponsorship is a huge market, and partners are still chosen mostly by follower c
 - **Brief → agent → Qloo entities.** Describe a campaign in plain English. A Nemotron agent looks up the brand and 1–3 taste words in Qloo with tools, retries short variants when a search misses, and can only use IDs Qloo returned. You confirm the entities before anything is ranked.
 - **Ranked partners with evidence cards.** Qloo Insights ranks artists, podcasts, TV shows and creators by affinity with the brand's taste signal, filtered to your age band. Each card shows:
   - the affinity score;
-  - shared taste tags;
-  - the share of the audience in your age band;
-  - regions with the strongest affinity;
-  - a 6-month trend.
+  - the partner's own Qloo taste tags ("their audience is into…");
+  - how strongly their audience over- or under-indexes with your age band;
+  - whether the ranking used your target market as a location signal.
 - **Grounded "why this fit."** Every AI-written line cites the card evidence it rests on, and a validator removes anything that doesn't. Hover a citation to see the exact data behind it.
 - **One-click outreach email.** It's built only from evidence that supports the deal, with every fact cited.
 - **"Would AI alone get this right?"** The same brief and the same model, without Qloo. FanFit checks each of the AI's picks against Qloo and shows where Qloo ranks them, plus the partners only FanFit found. On our three live presets, **none of the AI's 18 picks made FanFit's top 8**. For Patagonia's tour, the AI picked The Lumineers (Qloo rank #13 for the brief) and Maggie Rogers (#15). Qloo's top picks were Houndmouth, Caamp and Mt. Joy, whose audiences over-index on Patagonia and with 30–34 year olds.
@@ -41,7 +40,7 @@ Sponsorship is a huge market, and partners are still chosen mostly by follower c
   - "strong", "high" or "top" without a quoted value;
   - the age affinity index turned into a percentage of the audience.
 - **Backend:** FastAPI streams the agent's steps live to the page (NDJSON). Qloo access goes through one client with three modes: fixture, live with a disk cache, and replay, so the demo survives after the key expires. A parameter allowlist means nothing the user types reaches Qloo verbatim.
-- **Hosting:** k3s on an NVIDIA DGX Spark behind a Cloudflare tunnel. Plain HTML/JS with no framework. 40+ tests.
+- **Hosting:** k3s on an NVIDIA DGX Spark behind a Cloudflare tunnel. Plain HTML/JS with no framework. 50 tests.
 
 ## Challenges we ran into
 - **Keeping an LLM honest about data.** The model happily turned a regional affinity score into "a large portion of listeners live in Denver", and pitched weak evidence as a strength. Prompting alone didn't fix it; a validator with explicit rules and passing only supportive evidence to the pitch writer did.
