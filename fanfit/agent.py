@@ -68,7 +68,9 @@ RESOLVE_SYSTEM = """You turn a sponsorship campaign brief into Qloo ids.
 Use search_brand for the brand name and search_tags for up to 3 short category or vibe words.
 Only ever pass short lookup terms (max 40 chars) to tools, never the whole brief, and never a private person's name.
 If the brand is not found, try one shorter variant, then continue with tags only.
-If several brands match, pick the exact name match. Then call finish exactly once."""
+If several brands match, pick the exact name match.
+Put the target city or region in finish.market; it is NOT a taste tag, so never search it with search_tags.
+Then call finish exactly once."""
 
 
 def resolve_with_agent(text: str, qloo: QlooClient, llm: LLM, trace: list[str]) -> tuple[Brief, Resolution]:
