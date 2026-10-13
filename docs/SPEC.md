@@ -2,7 +2,7 @@
 
 Sponsorship matchmaking agent grounded in Qloo's taste graph.
 v1 written 2026-10-13. v2 2026-10-13, after an independent spec review (all 12 points applied; see §14).
-Status: not yet checked against live API data (no key).
+Status: checked against live Qloo on 2026-10-13. Verdict GO. Where live data changed this design (heatmap, trending and shared tags dropped; demographics are indices; the market is a ranking signal), [`datacheck.md`](datacheck.md) wins over §4–§6 below.
 
 ## 1. Problem
 Brands choose sponsorship partners (artists, podcasts, creators, TV shows) mostly by reach (followers, downloads) and gut feel.

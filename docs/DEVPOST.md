@@ -1,6 +1,6 @@
 # Devpost submission draft: FanFit
 
-Paste-ready sections for the Qloo Agentic Hackathon submission form. **[TODO-LIVE]** marks things to update once live Qloo data is in.
+Paste-ready sections for the Qloo Agentic Hackathon submission form. Numbers are from live Qloo runs on 2026-10-13 (`docs/datacheck.md`).
 
 ---
 
@@ -27,26 +27,26 @@ Sponsorship is a huge market, and partners are still chosen mostly by follower c
   - a 6-month trend.
 - **Grounded "why this fit."** Every AI-written line cites the card evidence it rests on, and a validator removes anything that doesn't. Hover a citation to see the exact data behind it.
 - **One-click outreach email.** It's built only from evidence that supports the deal, with every fact cited.
-- **"Would AI alone get this right?"** The same brief and the same model, without Qloo. FanFit checks each of the AI's picks against Qloo and shows which ones Qloo can't back, plus the partners only FanFit found. **[TODO-LIVE: add a real example, e.g. "AI alone suggested 6 partners; Qloo backs 1…"]**
+- **"Would AI alone get this right?"** The same brief and the same model, without Qloo. FanFit checks each of the AI's picks against Qloo and shows where Qloo ranks them, plus the partners only FanFit found. On our three live presets, **none of the AI's 18 picks made FanFit's top 8**. For Patagonia's tour, the AI picked The Lumineers (Qloo rank #13 for the brief) and Maggie Rogers (#15). Qloo's top picks were Houndmouth, Caamp and Mt. Joy, whose audiences over-index on Patagonia and with 30–34 year olds.
 
 ## How we built it
 - **Qloo:**
   - `/search` and `/v2/tags` turn the brief into a signal;
-  - `/v2/insights` with `filter.type` = artist / podcast / tv_show / person, the brand entity plus taste tags as signals, a demographic filter, and `feature.explainability` produces the ranking;
-  - `urn:heatmap` gives regional affinity and `urn:demographics` gives the age profile;
-  - `/v2/trending` gives momentum.
+  - `/v2/insights` with `filter.type` = artist / podcast / tv_show / person, the brand entity plus taste tags as signals, and the age band, produces the ranking;
+  - the target market goes in as `signal.location.query`, and `urn:demographics` gives the age profile as an over/under-index.
 - **Agent:** an LLM tool-calling loop (search_brand, search_tags, finish) on **NVIDIA Nemotron 3 Super** via **Nebius Token Factory**, called through any OpenAI-compatible endpoint. We compared three Nemotron models on our own briefs and picked the one that was fastest and whose claims all passed the validator.
 - **Grounding:** structured claims with evidence IDs, plus a deterministic validator. It rejects:
   - claims that cite no evidence, or cite evidence that isn't on the card;
   - claims that name other cards' partners;
   - "strong", "high" or "top" without a quoted value;
-  - regional affinity described as where fans live.
+  - the age affinity index turned into a percentage of the audience.
 - **Backend:** FastAPI streams the agent's steps live to the page (NDJSON). Qloo access goes through one client with three modes: fixture, live with a disk cache, and replay, so the demo survives after the key expires. A parameter allowlist means nothing the user types reaches Qloo verbatim.
 - **Hosting:** k3s on an NVIDIA DGX Spark behind a Cloudflare tunnel. Plain HTML/JS with no framework. 40+ tests.
 
 ## Challenges we ran into
-- **Keeping an LLM honest about data.** The model happily turned "regional affinity 0.92" into "92% of listeners live in Denver", and pitched a 0.5% age share as a strength. Prompting alone didn't fix it; a validator with explicit rules and passing only supportive evidence to the pitch writer did.
-- **Building before the API key arrived.** Every Qloo call goes through one interface, and all response parsing lives in one file, so switching from fixtures to live data is a configuration change plus one file to verify.
+- **Keeping an LLM honest about data.** The model happily turned a regional affinity score into "a large portion of listeners live in Denver", and pitched weak evidence as a strength. Prompting alone didn't fix it; a validator with explicit rules and passing only supportive evidence to the pitch writer did.
+- **Building before the API key arrived, then meeting real data.** We built against fixtures behind one Qloo interface. The live check then overturned several assumptions: demographics are −1..1 indices, not shares; the heatmap returns unnamed geohashes; trending was flat; brands have no tags. Because all parsing lived in one file, adapting took hours, not days. Details in `docs/datacheck.md`.
+- **Rate limits** (5/s, 10k/month): a thread-safe throttle, 1-second backoff on 429s, and caching every response.
 - **Streaming through Cloudflare and ingress-nginx** without buffering, and rate-limiting by the real visitor IP behind two proxies.
 
 ## Accomplishments we're proud of
@@ -72,4 +72,4 @@ Open the demo URL; no login. Click any example on the left; results stream in ab
 - click **Draft outreach email** on a card;
 - scroll down and click **Compare with AI alone**.
 
-Or type your own brief in "Describe it". **[TODO-LIVE: note whether the demo runs on live or cached Qloo data during judging.]**
+Or type your own brief in "Describe it". The demo runs on live Qloo data; if the hackathon key is deactivated before judging ends, the three examples are served from cached Qloo responses (a banner says so).
