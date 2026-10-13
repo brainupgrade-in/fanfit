@@ -143,3 +143,11 @@ def test_compare_needs_llm():
     c = client()
     r = c.post("/api/compare", json=shortlist_body(resolve_preset(c)))
     assert r.status_code == 503 and r.json()["code"] == "llm_unavailable"
+
+
+def test_rate_limit_keys_on_cloudflare_visitor_ip():
+    c = client(limiter=RateLimiter(per_ip_hour=1, global_day=100))
+    body = shortlist_body(resolve_preset(c))
+    assert c.post("/api/shortlist", json=body, headers={"CF-Connecting-IP": "203.0.113.7"}).status_code == 200
+    assert c.post("/api/shortlist", json=body, headers={"CF-Connecting-IP": "203.0.113.8"}).status_code == 200
+    assert c.post("/api/shortlist", json=body, headers={"CF-Connecting-IP": "203.0.113.7"}).status_code == 429

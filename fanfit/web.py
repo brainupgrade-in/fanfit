@@ -7,6 +7,7 @@ Run: uv run uvicorn fanfit.web:app --reload
 from __future__ import annotations
 
 import json
+import logging
 import os
 import queue
 import threading
@@ -29,6 +30,17 @@ from fanfit.qloo import QlooUnavailable, make_client
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 STATIC = Path(__file__).resolve().parent / "static"
+log = logging.getLogger("uvicorn.error")
+
+
+def client_ip(req: Request) -> str:
+    """Behind Cloudflare -> ingress-nginx the socket address is the controller pod; Cloudflare's header is the visitor."""
+    return req.headers.get("cf-connecting-ip") or (req.client.host if req.client else "?")
+
+
+def masked(ip: str) -> str:
+    parts = ip.split(".")
+    return ".".join(parts[:2] + ["x", "x"]) if len(parts) == 4 else ip.split(":")[0] + ":…"
 
 
 class RateLimiter:
@@ -128,11 +140,10 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
     app = FastAPI(title="FanFit")
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
-    def ip(req: Request) -> str:
-        return req.headers.get("cf-connecting-ip") or (req.client.host if req.client else "?")
-
     def limited(req: Request):
-        msg = limiter.allow(ip(req))
+        ip = client_ip(req)
+        msg = limiter.allow(ip)
+        log.info("run %s from %s%s", req.url.path, masked(ip), " (rate limited)" if msg else "")
         return JSONResponse({"type": "error", "code": "rate_limited", "message": msg}, status_code=429) if msg else None
 
     @app.get("/")
