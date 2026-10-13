@@ -80,8 +80,45 @@ LIVE_PRESETS = {
     },
 }
 
+# Reverse mode: a creator looks for brands. `brand` holds the creator's name, `subject_type` what it is.
+CREATOR_FIXTURE_PRESETS = {
+    "juniper-ash": {
+        "title": "Juniper Ash → brands for a tour",
+        "text": "Juniper Ash, an indie folk artist, wants brand sponsors for a tour. Fans 25-29, Austin.",
+        "brief": Brief(brand="Juniper Ash", subject_type="artist", age="25_to_29", market="Austin", partner_types=["brand"]),
+    },
+}
+
+# Checked live on 2026-10-13 (docs/reverse-mode.md).
+CREATOR_LIVE_PRESETS = {
+    "huberman-lab": {
+        "title": "Huberman Lab → podcast sponsors",
+        "text": "Huberman Lab, a health and science podcast, wants brand sponsors. Listeners 25-29, New York.",
+        "brief": Brief(brand="Huberman Lab", subject_type="podcast", age="25_to_29", market="New York", partner_types=["brand"]),
+    },
+    "khruangbin": {
+        "title": "Khruangbin → tour sponsors",
+        "text": "Khruangbin, a psychedelic-soul trio, wants brand sponsors for a tour. Fans 30-34, Denver.",
+        "brief": Brief(brand="Khruangbin", subject_type="artist", age="30_to_34", market="Denver", partner_types=["brand"]),
+    },
+    "the-bear": {
+        "title": "The Bear → brand partners",
+        "text": "The Bear, a TV drama about a Chicago kitchen, wants brand partners. Viewers 30-34, Chicago.",
+        "brief": Brief(brand="The Bear", subject_type="tv_show", age="30_to_34", market="Chicago", partner_types=["brand"]),
+    },
+    "emma-chamberlain": {
+        "title": "Emma Chamberlain → creator deals",
+        "text": "Emma Chamberlain, a creator, wants brand deals. Fans under 25, Los Angeles.",
+        "brief": Brief(brand="Emma Chamberlain", subject_type="person", age="24_and_younger", market="Los Angeles", partner_types=["brand"]),
+    },
+}
+
 PRESETS = FIXTURE_PRESETS  # tests and fixture mode
 
 
 def presets_for(mode: str) -> dict:
     return FIXTURE_PRESETS if mode == "fixture" else LIVE_PRESETS
+
+
+def creator_presets_for(mode: str) -> dict:
+    return CREATOR_FIXTURE_PRESETS if mode == "fixture" else CREATOR_LIVE_PRESETS

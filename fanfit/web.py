@@ -26,7 +26,7 @@ from pydantic import BaseModel, Field
 
 from fanfit.agent import OpenAICompatLLM, add_claims, draft_pitch, llm_only_partners, resolve_with_agent
 from fanfit.pipeline import MAX_CARDS, Brief, Resolution, compare_with_qloo, rank_pool, resolve, shortlist
-from fanfit.presets import presets_for
+from fanfit.presets import creator_presets_for, presets_for
 from fanfit.qloo import QlooBadRequest, QlooUnavailable, make_client
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
@@ -79,6 +79,7 @@ class BriefIn(BaseModel):
     gender: str | None = None
     market: str | None = Field(None, max_length=200)
     partner_types: list[str] = Field(default_factory=lambda: ["artist", "podcast"], max_length=4)
+    subject_type: str = Field("brand", max_length=20)
 
 
 class ResolveIn(BaseModel):
@@ -156,6 +157,8 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
     llm = llm if llm is not None else OpenAICompatLLM.from_env()
     limiter = limiter or RateLimiter(int(os.environ.get("RATE_PER_IP_HOUR", 20)), int(os.environ.get("RATE_GLOBAL_DAY", 150)))
     presets = presets_for(qloo.mode)
+    creator_presets = creator_presets_for(qloo.mode)
+    every_preset = {**presets, **creator_presets}
     app = FastAPI(title="FanFit")
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
@@ -175,6 +178,7 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
             "qloo_mode": qloo.mode,
             "llm": bool(llm),
             "presets": [{"key": k, "title": p["title"], "text": p["text"]} for k, p in presets.items()],
+            "creator_presets": [{"key": k, "title": p["title"], "text": p["text"]} for k, p in creator_presets.items()],
         }
 
     @app.post("/api/resolve")
@@ -186,9 +190,9 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
             if qloo.mode == "replay" and not body.preset:
                 return {"type": "error", "code": "replay_examples_only", "message": REPLAY_ONLY}
             if body.preset:
-                if body.preset not in presets:
+                if body.preset not in every_preset:
                     return {"type": "error", "code": "bad_request", "message": "Unknown preset."}
-                brief = presets[body.preset]["brief"]
+                brief = every_preset[body.preset]["brief"]
                 res = resolve(brief, qloo)
                 s.append(f"Preset resolved: {res.brand['name'] if res.brand else 'no brand'}")
             elif body.text:
@@ -198,7 +202,7 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
                 brief, res = resolve_with_agent(body.text, qloo, llm, s)
             elif body.brief:
                 brief = Brief(**body.brief.model_dump())
-                s.append("Looking up your brand and categories in Qloo…")
+                s.append("Looking up your brand and categories in Qloo…" if brief.subject_type == "brand" else "Looking you up in Qloo…")
                 res = resolve(brief, qloo)
             else:
                 return {"type": "error", "code": "bad_request", "message": "Enter a brief or pick a preset."}
@@ -223,7 +227,10 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
         """Where a brief's AI-alone picks are kept, next to the Qloo cache, so replay mode can show the same comparison."""
         if not hasattr(qloo, "cache_dir"):
             return None
-        key = hashlib.sha256(json.dumps([label, asdict(brief)], sort_keys=True).encode()).hexdigest()[:32]
+        b = asdict(brief)
+        if b["subject_type"] == "brand":  # keeps the names of files saved before reverse mode existed
+            del b["subject_type"]
+        key = hashlib.sha256(json.dumps([label, b], sort_keys=True).encode()).hexdigest()[:32]
         return Path(qloo.cache_dir) / f"baseline-{key}.json"
 
     @app.post("/api/shortlist")

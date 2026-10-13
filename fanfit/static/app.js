@@ -5,8 +5,10 @@ const AGE_LABEL = {
   "35_to_44": "35–44", "45_to_54": "45–54", "55_and_older": "55 and older",
 };
 const TYPE_LABEL = { artist: "Artist", podcast: "Podcast", tv_show: "TV show", person: "Creator / athlete", brand: "Brand" };
-let config = { llm: false, qloo_mode: "fixture", presets: [] };
+let config = { llm: false, qloo_mode: "fixture", presets: [], creator_presets: [] };
 let busy = false;
+let mode = "brand"; // "brand": a brand looks for partners · "creator": a creator looks for brand sponsors
+const forCreator = (brief) => brief.subject_type && brief.subject_type !== "brand";
 
 function el(tag, attrs = {}, ...kids) {
   const n = document.createElement(tag);
@@ -97,12 +99,13 @@ function showConfirm(brief, res) {
 }
 function renderConfirm() {
   const s = confirmState, box = $("#confirm");
+  const subject = forCreator(s.brief) ? TYPE_LABEL[s.brief.subject_type] : "Brand";
   const brandPart = s.candidates.length > 1
-    ? el("label", {}, "Which brand did you mean? ",
+    ? el("label", {}, forCreator(s.brief) ? "Which one is you? " : "Which brand did you mean? ",
         el("select", { id: "c-brand", onchange: (e) => { s.brand = s.candidates.find((c) => c.entity_id === e.target.value) || null; } },
           el("option", { value: "", text: "None of these (use categories only)" }),
           s.candidates.map((c) => el("option", { value: c.entity_id, selected: s.brand?.entity_id === c.entity_id, text: c.name }))))
-    : el("div", { class: "chips" }, s.brand ? el("span", { class: "chip qloo", text: `Brand: ${s.brand.name}` }) : el("span", { class: "chip", text: "No brand match: using categories only" }));
+    : el("div", { class: "chips" }, s.brand ? el("span", { class: "chip qloo", text: `${subject}: ${s.brand.name}` }) : el("span", { class: "chip", text: "No brand match: using categories only" }));
   const tags = el("div", { class: "chips" },
     s.tags.map((t, i) => el("span", { class: "chip qloo" }, `Taste tag: ${t.name}`,
       el("button", { type: "button", "aria-label": `Remove ${t.name}`, text: "×", onclick: () => { s.tags.splice(i, 1); renderConfirm(); } }))));
@@ -117,7 +120,7 @@ function renderConfirm() {
     el("p", { text: "These are the exact Qloo entities FanFit will use as the taste signal. Remove anything that's off." }),
     brandPart, tags, el("p", { text: meta }),
     el("div", { class: "actions" },
-      el("button", { class: "primary", type: "button", text: "Find partners", onclick: () => runShortlist(collectConfirm()) })));
+      el("button", { class: "primary", type: "button", text: forCreator(s.brief) ? "Find brands" : "Find partners", onclick: () => runShortlist(collectConfirm()) })));
   box.hidden = false;
 }
 function collectConfirm() {
@@ -130,7 +133,7 @@ async function runShortlist(payload) {
   if (!payload.brand && !payload.tags.length) { notice("Keep a brand or at least one taste tag to search with.", "error"); return; }
   setBusy(true); notice(null);
   $("#confirm").hidden = true; $("#cards").replaceChildren(); $("#compare").hidden = true;
-  traceRunning("Asking Qloo for partner affinities…");
+  traceRunning(forCreator(payload.brief) ? "Asking Qloo which brands' customers love your audience…" : "Asking Qloo for partner affinities…");
   const r = await stream("/api/shortlist", payload, traceRunning);
   traceDone();
   setBusy(false);
@@ -177,8 +180,9 @@ function renderCompare(r) {
   const n = r.llm_only.length;
   const count = (st) => r.llm_only.filter((x) => x.qloo.status === st).length;
   const hit = count("shortlisted"), missing = count("not_found"), weak = count("low") + count("not_ranked");
+  const noun = forCreator(lastPayload.brief) ? "brands" : "partners";
   const summary = n
-    ? `AI alone suggested ${n} partners: ${hit} made FanFit's shortlist, ${weak} ${weak === 1 ? "ranks" : "rank"} lower in Qloo for this brief, and ${missing} ${missing === 1 ? "wasn't" : "weren't"} found under that name. FanFit surfaced ${r.qloo_only.length} partners that AI alone missed.`
+    ? `AI alone suggested ${n} ${noun}: ${hit} made FanFit's shortlist, ${weak} ${weak === 1 ? "ranks" : "rank"} lower in Qloo for this brief, and ${missing} ${missing === 1 ? "wasn't" : "weren't"} found under that name. FanFit surfaced ${r.qloo_only.length} ${noun} that AI alone missed.`
     : "AI alone didn't return any usable suggestions for this brief.";
   const fmt = (q) => q.rank ? ` · rank ${q.rank} of ${q.of}, affinity ${q.affinity.toFixed(2)}` : "";
   return el("div", {},
@@ -219,7 +223,8 @@ function ageText(key, v) {
 }
 function renderCard(c, brief) {
   const ev = c.evidence;
-  const tastes = Object.entries(ev).filter(([k]) => k.startsWith("taste:"));
+  const tastes = Object.entries(ev).filter(([k]) => k.startsWith("taste:") || k.startsWith("life:"));
+  const isBrand = typeKey(c.partner.type) === "brand";
   const demo = Object.entries(ev).find(([k]) => k.startsWith("demo:"));
 
   const card = el("article", { class: "card" },
@@ -233,9 +238,10 @@ function renderCard(c, brief) {
       el("b", { text: c.affinity.toFixed(2) })),
     el("div", { class: "ev-grid" },
       el("div", { class: "ev" },
-        el("h4", { text: "Their audience is into" }),
+        el("h4", { text: isBrand ? "Their customers lean into" : "Their audience is into" }),
         tastes.length ? el("div", { class: "chips" }, tastes.map(([k, v]) => el("span", { class: "chip", "data-ev": k, text: v.value })))
-                      : el("p", { class: "hint", text: "No taste tags reported." })),
+                      : el("p", { class: "hint", text: "No taste tags reported." }),
+        ev.identity ? el("p", { class: "hint identity", "data-ev": "identity", text: `Qloo: “${ev.identity.value}”` }) : null),
       el("div", { class: "ev" },
         el("h4", { text: "Audience fit" }),
         demo ? el("p", { class: "hint", "data-ev": demo[0], text: ageText(...demo) + (demo[1].target ? "" : " (their strongest age band)") }) : null,
@@ -270,7 +276,8 @@ async function runPitch(c, cardEl, btn, out) {
   btn.disabled = false; btn.textContent = "Redraft email";
   if (r.type === "error") { out.replaceChildren(el("div", { class: "notice error", text: r.message })); return; }
   const p = r.pitch, brand = brandLabel(lastPayload);
-  const plain = [`Subject: ${p.subject}`, "", p.opening, "", ...p.points.map((x) => `- ${x.text}`), "", p.ask, "", `${brand} partnerships team`].join("\n");
+  const signoff = forCreator(lastPayload.brief) ? brand : `${brand} partnerships team`;
+  const plain = [`Subject: ${p.subject}`, "", p.opening, "", ...p.points.map((x) => `- ${x.text}`), "", p.ask, "", signoff].join("\n");
   const copy = el("button", { class: "secondary small", type: "button", text: "Copy email", onclick: async () => {
     try { await navigator.clipboard.writeText(plain); copy.textContent = "Copied"; } catch { copy.textContent = "Copy failed: select the text instead"; }
     setTimeout(() => (copy.textContent = "Copy email"), 2000);
@@ -280,12 +287,13 @@ async function runPitch(c, cardEl, btn, out) {
     el("p", { text: p.opening }),
     el("ul", {}, p.points.map((x) => el("li", {}, x.text, ...x.evidence_ids.map((id) => citeChip(cardEl, id, c.evidence[id]))))),
     el("p", { text: p.ask }),
-    el("p", { class: "hint", text: `${brand} partnerships team` }),
+    el("p", { class: "hint", text: signoff }),
     el("div", { class: "email-actions" }, copy, el("span", { class: "hint", text: "Every fact in this draft cites the card's Qloo evidence." }))));
 }
 function citeChip(card, id, v) {
   const label = id === "affinity" ? "affinity"
-    : id.startsWith("demo:") ? `age ${AGE_LABEL[id.slice(5)] || id.slice(5)}` : id === "market" ? `market` : (v?.value ?? id);
+    : id.startsWith("demo:") ? `age ${AGE_LABEL[id.slice(5)] || id.slice(5)}` : id === "market" ? `market`
+    : id === "identity" ? "audience" : (v?.value ?? id);
   const on = () => card.querySelectorAll(`[data-ev="${CSS.escape(id)}"]`).forEach((n) => n.classList.add("hl"));
   const off = () => card.querySelectorAll(".hl").forEach((n) => n.classList.remove("hl"));
   return el("span", { class: "cite", tabindex: "0", title: `Evidence: ${v?.label || id}`, text: String(label),
@@ -323,6 +331,54 @@ $("#pane-form").addEventListener("submit", (e) => {
   runResolve({ brief });
 });
 
+$("#pane-creator").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const brief = { brand: f.get("name") || null, subject_type: f.get("stype"), age: f.get("age") || null,
+                  market: f.get("market") || null, partner_types: ["brand"] };
+  if (!brief.brand) { notice("Enter your name as Qloo would know it: the artist, podcast, show or creator.", "error"); return; }
+  runResolve({ brief });
+});
+
+function renderPresets() {
+  const run = (p) => () => runResolve({ preset: p.key }, { autoConfirm: true });
+  const list = mode === "creator" ? config.creator_presets : config.presets;
+  const [featured, more] = mode === "creator" ? [list, []] : [list.slice(0, 3), list.slice(3)];
+  $("#presets").replaceChildren(
+    ...featured.map((p) => el("button", { class: "preset", type: "button", onclick: run(p) },
+      el("strong", { text: p.title }), el("span", { text: p.text }))),
+    ...(more.length ? [el("p", { class: "label more", text: "More brands" }),
+      el("div", { class: "preset-more" }, more.map((p) =>
+        el("button", { class: "preset chip-btn", type: "button", title: `${p.title}: ${p.text}`, onclick: run(p) }, p.title.split(" →")[0])))] : []));
+}
+function setMode(m) {
+  if (busy || (m === "creator" && !config.creator_presets.length)) return;
+  mode = m;
+  $("#mode-brand").setAttribute("aria-pressed", String(m === "brand"));
+  $("#mode-creator").setAttribute("aria-pressed", String(m === "creator"));
+  const live = config.qloo_mode !== "replay";
+  $(".tabs").hidden = m === "creator" || !live;
+  $("#pane-text").hidden = m === "creator" || !live || $("#tab-text").getAttribute("aria-selected") !== "true";
+  $("#pane-form").hidden = m === "creator" || !live || $("#tab-form").getAttribute("aria-selected") !== "true";
+  $("#pane-creator").hidden = m !== "creator" || !live;
+  $(".tagline").textContent = m === "creator"
+    ? "Brand sponsors whose customers already love your audience, ranked by real taste data from Qloo, not follower counts."
+    : "Sponsorship partners whose fans already love your brand, ranked by real taste data from Qloo, not follower counts.";
+  $("#empty-state .big").textContent = m === "creator"
+    ? (live ? "Pick an example or look yourself up." : "Pick an example to see a cached Qloo run.")
+    : (live ? "Pick an example or describe your campaign." : "Pick an example to see a cached Qloo run.");
+  $("#empty-state p:not(.big)").textContent = m === "creator"
+    ? "FanFit looks you up in Qloo, then ranks brands by how much their customers' tastes overlap with your audience. Every claim on a card points to the evidence behind it."
+    : "FanFit's agent turns your brief into Qloo entities, asks you to confirm them, then ranks partners by how much their fans' tastes overlap with your brand. Every claim on a card points to the evidence behind it.";
+  // a new mode starts clean
+  $("#cards").replaceChildren(); $("#confirm").hidden = true; $("#compare").hidden = true; $("#footnote").hidden = true;
+  $("#trace").hidden = true; $("#empty-state").hidden = false; notice(null);
+  renderPresets();
+  history.replaceState(null, "", m === "creator" ? "#creator" : location.pathname);
+}
+$("#mode-brand").addEventListener("click", () => setMode("brand"));
+$("#mode-creator").addEventListener("click", () => setMode("creator"));
+
 (async function init() {
   config = await fetch("/api/config").then((r) => r.json());
   const banner = $("#banner");
@@ -340,12 +396,6 @@ $("#pane-form").addEventListener("submit", (e) => {
     $("#empty-state .big").textContent = "Pick an example to see a cached Qloo run.";
     $(".presets").append(el("p", { class: "hint", text: "Typing your own brief needs live Qloo access, which ended with the hackathon. Each example above is a real Qloo run, cached." }));
   }
-  const run = (p) => () => runResolve({ preset: p.key }, { autoConfirm: true });
-  const [featured, more] = [config.presets.slice(0, 3), config.presets.slice(3)];
-  $("#presets").replaceChildren(
-    ...featured.map((p) => el("button", { class: "preset", type: "button", onclick: run(p) },
-      el("strong", { text: p.title }), el("span", { text: p.text }))),
-    ...(more.length ? [el("p", { class: "label more", text: "More brands" }),
-      el("div", { class: "preset-more" }, more.map((p) =>
-        el("button", { class: "preset chip-btn", type: "button", title: `${p.title}: ${p.text}`, onclick: run(p) }, p.title.split(" →")[0])))] : []));
+  if (!config.creator_presets?.length) $(".mode").hidden = true;
+  setMode(location.hash === "#creator" ? "creator" : "brand");
 })();

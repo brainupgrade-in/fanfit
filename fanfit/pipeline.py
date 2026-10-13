@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from fanfit.qloo import AGE_BANDS, GENDERS, TEXT_MAX, QlooBadRequest, QlooClient, QlooUnavailable
 
 PARTNER_TYPES = {"artist", "podcast", "tv_show", "person"}
+SUBJECT_TYPES = {"brand"} | PARTNER_TYPES  # who the brief is for; anything but "brand" is reverse mode (creator → brands)
 MAX_CARDS = 8
 
 
@@ -22,17 +23,20 @@ class Brief:
     gender: str | None = None
     market: str | None = None
     partner_types: list[str] = field(default_factory=lambda: ["artist", "podcast"])
+    subject_type: str = "brand"  # what `brand` names; a creator type means "find brands for this creator"
 
     def clean(self) -> "Brief":
         """Clamp to what may be sent to Qloo (SPEC §8)."""
         short = lambda s: s.strip()[:TEXT_MAX] if s and s.strip() else None
+        subject = self.subject_type if self.subject_type in SUBJECT_TYPES else "brand"
         return Brief(
+            subject_type=subject,
             brand=short(self.brand),
             category_terms=[t for t in (short(t) for t in self.category_terms[:3]) if t],
             age=self.age if self.age in AGE_BANDS else None,
             gender=self.gender if self.gender in GENDERS else None,
             market=short(self.market),
-            partner_types=[t for t in self.partner_types if t in PARTNER_TYPES] or ["artist"],
+            partner_types=["brand"] if subject != "brand" else [t for t in self.partner_types if t in PARTNER_TYPES | {"brand"}] or ["artist"],
         )
 
 
@@ -69,7 +73,7 @@ def search_tags(qloo: QlooClient, term: str, take: int = 5) -> list[dict]:
 def resolve(brief: Brief, qloo: QlooClient) -> Resolution:
     brief = brief.clean()
     unresolved = []
-    candidates = search_entities(qloo, brief.brand, "urn:entity:brand") if brief.brand else []
+    candidates = search_entities(qloo, brief.brand, f"urn:entity:{brief.subject_type}") if brief.brand else []
     if brief.brand and not candidates:
         unresolved.append(brief.brand)
     exact = [c for c in candidates if c["name"].lower() == brief.brand.lower()] if brief.brand else []
@@ -118,15 +122,33 @@ def _taste_tags(e: dict, n: int = 6) -> list[dict]:
     return out[:n]
 
 
+def _as_list(v) -> list:
+    return v if isinstance(v, list) else [v] if v else []
+
+
+def _brand_extras(e: dict) -> dict:
+    """Brand results carry Qloo-written audience properties (live, 2026-10-13); their tags are mostly Wikipedia
+    categories ("1920 establishments in …"), so lifestyle themes stand in for taste tags."""
+    props = e.get("properties") or {}
+    life = list(dict.fromkeys(str(x).strip() for x in _as_list(props.get("aspirational_lifestyle")) if str(x).strip()))
+    identity = props.get("audience_identity")
+    return {"tags": [], "lifestyle": life[:5], "identity": identity.strip() if isinstance(identity, str) and identity.strip() else None}
+
+
+def _nonprofit(e: dict) -> bool:
+    return "Nonprofit" in _as_list((e.get("properties") or {}).get("business_model"))
+
+
 def find_partners(qloo: QlooClient, res: Resolution, brief: Brief, ptype: str, take: int = 20) -> list[dict]:
     params = {"filter.type": f"urn:entity:{ptype}", **_signal(res, brief), "take": take}
-    return [{
-        **_entity(e),
-        "type": f"urn:entity:{ptype}",
-        "affinity": _affinity(e),
-        "popularity": e.get("popularity"),
-        "tags": _taste_tags(e),
-    } for e in qloo.get("/v2/insights", params).get("results", {}).get("entities", [])]
+    out = []
+    for e in qloo.get("/v2/insights", params).get("results", {}).get("entities", []):
+        if ptype == "brand" and _nonprofit(e):  # charities show up as brands but don't buy sponsorships
+            continue
+        c = {**_entity(e), "type": f"urn:entity:{ptype}", "affinity": _affinity(e), "popularity": e.get("popularity"),
+             "tags": _taste_tags(e)}
+        out.append({**c, **_brand_extras(e)} if ptype == "brand" else c)
+    return out
 
 
 def audience_demographics(qloo: QlooClient, entity_id: str) -> dict:
@@ -140,6 +162,10 @@ def build_card(rank: int, c: dict, brief: Brief, demo: dict) -> dict:
     ev = {"affinity": {"label": "Qloo affinity with the brand's taste signal", "value": c["affinity"], "rank": rank}}
     for t in c["tags"]:
         ev[f"taste:{t['id']}"] = {"label": "Qloo taste tag for this partner's audience", "value": t["name"]}
+    for i, v in enumerate(c.get("lifestyle") or [], 1):
+        ev[f"life:{i}"] = {"label": "Qloo aspirational-lifestyle theme for this brand's customers", "value": v}
+    if c.get("identity"):
+        ev["identity"] = {"label": "Qloo's description of this brand's audience", "value": c["identity"]}
     ages = demo.get("age") or {}
     band = brief.age if brief.age in ages else (max(ages, key=ages.get) if ages else None)
     if band:

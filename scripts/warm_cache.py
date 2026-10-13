@@ -16,7 +16,8 @@ def ev(r): return [json.loads(l) for l in r.text.splitlines() if l.strip()]
 
 def run(app, label):
     c = TestClient(app)
-    keys = [p["key"] for p in c.get("/api/config").json()["presets"]]
+    cfg = c.get("/api/config").json()
+    keys = [p["key"] for p in cfg["presets"] + cfg.get("creator_presets", [])]
     bad = 0
     for k in keys:
         r = ev(c.post("/api/resolve", json={"preset": k}))[-1]

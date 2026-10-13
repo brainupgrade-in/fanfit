@@ -19,10 +19,44 @@
     <section class="panel brief" aria-labelledby="brief-h">
       <h2 id="brief-h">Your brief</h2>
 
+      <div class="mode" role="group" aria-label="Who is this for?">
+        <button type="button" id="mode-brand" aria-pressed="true">I'm a brand <small>find partners</small></button>
+        <button type="button" id="mode-creator" aria-pressed="false">I'm a creator <small>find sponsors</small></button>
+      </div>
+
       <div class="presets">
         <p class="label">Try an example</p>
         <div id="presets" class="preset-list"></div>
       </div>
+
+      <form id="pane-creator" class="pane" hidden>
+        <p class="label">Or look yourself up</p>
+        <label>Your name <input name="name" maxlength="40" placeholder="Artist, podcast, show or creator"></label>
+        <div class="row">
+          <label>You are
+            <select name="stype">
+              <option value="artist">An artist</option>
+              <option value="podcast">A podcast</option>
+              <option value="tv_show">A TV show</option>
+              <option value="person">A creator or athlete</option>
+            </select>
+          </label>
+          <label>Fans' age
+            <select name="age">
+              <option value="">Any</option>
+              <option value="24_and_younger">24 and younger</option>
+              <option value="25_to_29">25–29</option>
+              <option value="30_to_34">30–34</option>
+              <option value="35_to_44">35–44</option>
+              <option value="45_to_54">45–54</option>
+              <option value="55_and_older">55 and older</option>
+            </select>
+          </label>
+        </div>
+        <label>Market <input name="market" maxlength="40" placeholder="e.g. Chicago"></label>
+        <p class="hint">Only your name and these fields are sent to Qloo, to find the brands whose customers already love your audience.</p>
+        <button type="submit" class="primary">Find brands</button>
+      </form>
 
       <div class="tabs" role="tablist">
         <button role="tab" id="tab-text" aria-selected="true" aria-controls="pane-text">Describe it</button>

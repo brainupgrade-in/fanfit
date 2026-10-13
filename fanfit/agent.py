@@ -139,10 +139,36 @@ Write for a brand marketer: plain words, numbers rounded to 2 decimals, shares a
 """ + EVIDENCE_GUIDE
 
 
+CREATOR_EVIDENCE_GUIDE = """How to read the evidence (all from Qloo):
+- affinity: Qloo's 0-1 score for how strongly the brand's customers match the creator's audience. rank = position in this shortlist.
+- life:*: Qloo's aspirational-lifestyle themes for the brand's customers. identity: Qloo's one-line description of them.
+  These describe the brand's customers, not the creator's fans; say "Whoop's customers lean into Peak Performance".
+- demo:<band>: an age affinity INDEX from -1 to 1 for the brand's customers in that band (positive = over-indexes).
+  It is NOT a share or percentage, and it is the brand's overall profile, NOT specific to the market.
+- market: the ranking (affinity) was computed with a location signal for this market."""
+
+CREATOR_CLAIMS_SYSTEM = """You explain to a creator (an artist, podcast, show or person) why a brand is a good sponsor to pitch,
+using ONLY the evidence given. Return JSON: {"claims": [{"text": "...", "evidence_ids": ["<key from evidence>"]}]}.
+2-4 claims, one sentence each. Every claim must cite at least one evidence key.
+Do not mention any fact, brand, theme, number or place that is not in the evidence.
+If you call something strong, high or top, quote its value (e.g. "affinity 0.93").
+Refer to the brand and the creator by name. Plain words, numbers rounded to 2 decimals.
+Say nothing about the creator's content, topics or style: the evidence describes the brand's customers only.
+""" + CREATOR_EVIDENCE_GUIDE
+
+
+def _to_brand(card: dict) -> bool:
+    """Reverse mode: the card's partner is a brand, and the subject of the brief is a creator."""
+    return card["partner"]["type"] == "urn:entity:brand"
+
+
 def write_claims(card: dict, cards: list[dict], brand_label: str, llm: LLM) -> list[dict]:
-    payload = {"brand": brand_label, "partner": card["partner"]["name"],
-               "partner_type": card["partner"]["type"].split(":")[-1], "evidence": card["evidence"]}
-    msg = llm.chat([{"role": "system", "content": CLAIMS_SYSTEM}, {"role": "user", "content": json.dumps(payload)}], json_mode=True)
+    if _to_brand(card):
+        system, payload = CREATOR_CLAIMS_SYSTEM, {"creator": brand_label, "brand": card["partner"]["name"], "evidence": card["evidence"]}
+    else:
+        system, payload = CLAIMS_SYSTEM, {"brand": brand_label, "partner": card["partner"]["name"],
+                                          "partner_type": card["partner"]["type"].split(":")[-1], "evidence": card["evidence"]}
+    msg = llm.chat([{"role": "system", "content": system}, {"role": "user", "content": json.dumps(payload)}], json_mode=True)
     try:
         claims = json.loads(msg.get("content") or "{}").get("claims", [])
     except json.JSONDecodeError:
@@ -170,11 +196,20 @@ Return JSON: {"partners": [{"name": "...", "type": "artist|podcast|tv_show|perso
 Suggest up to 8, only of the requested types. Use exact, well-known names."""
 
 
+CREATOR_BASELINE_SYSTEM = """You are a talent manager. Suggest real brands that would sponsor this creator.
+Return JSON: {"partners": [{"name": "...", "type": "brand", "reason": "one short sentence"}]}.
+Suggest up to 8 brands. Use exact, well-known brand names."""
+
+
 def llm_only_partners(brand_label: str, brief: Brief, llm: LLM) -> list[dict]:
     """The AI-alone baseline for the comparison panel: same brief and model, no Qloo tools."""
     b = brief.clean()
-    ask = {"brand": brand_label, "categories": b.category_terms, "age_band": b.age, "market": b.market, "partner_types": b.partner_types}
-    msg = llm.chat([{"role": "system", "content": BASELINE_SYSTEM}, {"role": "user", "content": json.dumps(ask)}], json_mode=True)
+    if b.subject_type != "brand":
+        system, ask = CREATOR_BASELINE_SYSTEM, {"creator": brand_label, "creator_type": b.subject_type, "fans_age_band": b.age, "market": b.market}
+    else:
+        system, ask = BASELINE_SYSTEM, {"brand": brand_label, "categories": b.category_terms, "age_band": b.age, "market": b.market,
+                                        "partner_types": b.partner_types}
+    msg = llm.chat([{"role": "system", "content": system}, {"role": "user", "content": json.dumps(ask)}], json_mode=True)
     try:
         raw = json.loads(msg.get("content") or "{}").get("partners", [])
     except json.JSONDecodeError:
@@ -198,6 +233,18 @@ Don't claim personal experience you can't know (e.g. "I've been enjoying your po
 """ + EVIDENCE_GUIDE
 
 
+CREATOR_PITCH_SYSTEM = """You draft a short sponsorship outreach email from a creator (an artist, podcast, show or person) to a brand.
+Use ONLY the evidence given for facts. Return JSON:
+{"subject": "...", "opening": "one friendly sentence, no numbers",
+ "points": [{"text": "one sentence", "evidence_ids": ["<key from evidence>"]}],
+ "ask": "one sentence proposing a next step"}
+2-4 points; every point cites at least one evidence key and quotes its value when it says strong/high/top.
+Address the brand by name. Never mention other brands, invented numbers, prices, follower counts or deliverables.
+Don't claim personal experience you can't know (e.g. "I've been enjoying your products"), and don't describe the creator's content;
+open with why you're writing.
+""" + CREATOR_EVIDENCE_GUIDE
+
+
 def supportive_evidence(card: dict) -> dict:
     """The subset of a card's evidence that argues FOR the partnership. The card shows everything; a pitch shouldn't
     sell an under-indexed age band."""
@@ -214,9 +261,12 @@ def draft_pitch(card: dict, cards: list[dict], brand_label: str, llm: LLM, forei
     partner = card["partner"]["name"]
     foreign = foreign if foreign is not None else foreign_names_for(card, cards)
     card = {**card, "evidence": supportive_evidence(card)}
-    payload = {"brand": brand_label, "partner": partner, "partner_type": card["partner"]["type"].split(":")[-1],
-               "evidence": card["evidence"]}
-    msg = llm.chat([{"role": "system", "content": PITCH_SYSTEM}, {"role": "user", "content": json.dumps(payload)}], json_mode=True)
+    if _to_brand(card):
+        system, payload = CREATOR_PITCH_SYSTEM, {"creator": brand_label, "brand": partner, "evidence": card["evidence"]}
+    else:
+        system, payload = PITCH_SYSTEM, {"brand": brand_label, "partner": partner, "partner_type": card["partner"]["type"].split(":")[-1],
+                                         "evidence": card["evidence"]}
+    msg = llm.chat([{"role": "system", "content": system}, {"role": "user", "content": json.dumps(payload)}], json_mode=True)
     try:
         raw = json.loads(msg.get("content") or "{}")
     except json.JSONDecodeError:

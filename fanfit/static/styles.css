@@ -166,3 +166,10 @@ label.check input { width: auto; }
 .email ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; }
 .email-subject { font-weight: 600; }
 .email-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 8px; }
+
+.mode { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--chip); padding: 4px; border-radius: var(--radius); margin: 4px 0 16px; }
+.mode button { border: 0; background: transparent; color: var(--ink); font: inherit; font-weight: 600; padding: 8px 6px; border-radius: 9px; cursor: pointer; line-height: 1.2; }
+.mode button small { display: block; font-weight: 400; color: var(--muted); font-size: 12px; }
+.mode button[aria-pressed="true"] { background: var(--panel); box-shadow: var(--shadow); }
+.mode button[aria-pressed="true"] small { color: var(--accent); }
+.identity { margin-top: 6px; }

@@ -204,3 +204,28 @@ def test_replay_accepts_examples_only(tmp_path, monkeypatch):
     for body in ({"text": "Nike wants podcasts"}, {"brief": {"brand": "Nike"}}):
         res = events(c.post("/api/resolve", json=body))[-1]
         assert res["type"] == "error" and res["code"] == "replay_examples_only"
+
+
+def test_config_lists_creator_examples_and_they_run_end_to_end():
+    c = client(llm=BaselineLLM())
+    cfg = c.get("/api/config").json()
+    assert cfg["creator_presets"] and {p["key"] for p in cfg["creator_presets"]}.isdisjoint({p["key"] for p in cfg["presets"]})
+    r = events(c.post("/api/resolve", json={"preset": cfg["creator_presets"][0]["key"]}))[-1]
+    assert r["status"] == "ok" and r["brief"]["subject_type"] == "artist"
+    body = {"brief": r["brief"], "brand": r["resolution"]["brand"], "tags": r["resolution"]["tags"]}
+    s = events(c.post("/api/shortlist", json=body))[-1]
+    assert s["cards"] and all(card["partner"]["type"] == "urn:entity:brand" for card in s["cards"])
+
+
+def test_brand_side_baseline_files_keep_their_old_names(tmp_path, monkeypatch):
+    """subject_type must not change the key of the saved AI-alone picks for brand briefs (judges see those)."""
+    import hashlib
+    from dataclasses import asdict
+    from fanfit.pipeline import Brief
+    live = client(qloo=_fixture_as("live", tmp_path, monkeypatch), llm=BaselineLLM())
+    body = shortlist_body(resolve_preset(live))
+    events(live.post("/api/compare", json=body))
+    b = Brief(**body["brief"]).clean()
+    old = {k: v for k, v in asdict(b).items() if k != "subject_type"}
+    key = hashlib.sha256(json.dumps([body["brand"]["name"], old], sort_keys=True).encode()).hexdigest()[:32]
+    assert (tmp_path / f"baseline-{key}.json").exists()
