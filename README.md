@@ -26,7 +26,7 @@ Brands pick sponsorship partners (artists, podcasts, shows, creators) mostly by 
    - the market the ranking was computed for.
 5. **"Why this fit" lines** are written by an LLM but **each one cites the evidence it rests on**. A validator drops any line that cites nothing, cites evidence not on the card, or names another card's partner or tags. It also drops any line that says "strong", "high" or "top" without quoting the value, or that turns the age index into a percentage of the audience. A line that names the target market may cite only the ranking evidence (affinity and market), because the age and taste data describe the partner's whole audience, not that city. Raw scores are rounded to 2 decimals, as on the card. Hovering a citation highlights that evidence.
 6. **"Draft outreach email"** writes a pitch to the partner. Every fact in the email is an evidence-cited point, and it only uses evidence that argues *for* the deal (an under-indexed age band is never sold as a strength).
-7. **"Would AI alone get this right?"** runs the same brief through the same model with no Qloo access. It then checks each of its picks in Qloo (in FanFit's shortlist / Qloo ranks it low / not a fit / not found) and lists the partners only FanFit found. Across the 10 examples (saved runs, 13 Oct 2026), 3 of the AI's 72 picks made FanFit's top 8; on Patagonia, none of them did.
+7. **"Would AI alone get this right?"** runs the same brief through the same model with no Qloo access. It then checks each of its picks in Qloo (in FanFit's shortlist / Qloo ranks it low / not a fit / not found) and lists the partners only FanFit found. Across the 10 examples (saved runs, 13 Oct 2026), 3 of the AI's 72 picks made FanFit's top 8; on Patagonia, none of them did. Each example's AI picks are saved the first time and reused after that, so the panel always shows the picks these numbers count.
 
 | Hover a citation to see its evidence | Outreach email, every fact cited |
 |---|---|
@@ -60,7 +60,7 @@ user confirms the brand
 card #1  Houndmouth (artist), affinity 0.98, over-indexes with 30–34 (+0.56), ranked for Denver,
          audience is into: American Life, Vintage, Harmonic …
          why (LLM, varies per run), e.g. "Its audience over-indexes with 30–34 year olds (+0.56)." [cites demo:30_to_34]
-AI alone (same model, no Qloo): The Lumineers → Qloo rank #13, Maggie Rogers → #15, four others outside the top 20
+AI alone (same model, no Qloo): The Lumineers → Qloo rank #13, Maggie Rogers → #15, six others outside the top 20
 ```
 
 ## Guardrails

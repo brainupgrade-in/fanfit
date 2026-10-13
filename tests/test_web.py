@@ -162,20 +162,34 @@ def _fixture_as(mode, cache_dir, monkeypatch):
     return q
 
 
+class NoBaselineLLM(BaselineLLM):
+    """Fails if asked for AI-alone picks: proves saved picks were reused."""
+
+    def chat(self, messages, tools=None, json_mode=False):
+        assert "sponsorship strategist" not in messages[0]["content"]
+        return super().chat(messages, tools, json_mode)
+
+
 def test_replay_reuses_the_ai_alone_picks_saved_while_live(tmp_path, monkeypatch):
     live = client(qloo=_fixture_as("live", tmp_path, monkeypatch), llm=BaselineLLM())
     body = shortlist_body(resolve_preset(live))
     first = events(live.post("/api/compare", json=body))[-1]
     assert first["type"] == "result"
 
-    class NoBaselineLLM(BaselineLLM):  # a different answer would show up if the picks weren't reused
-        def chat(self, messages, tools=None, json_mode=False):
-            assert "sponsorship strategist" not in messages[0]["content"]
-            return super().chat(messages, tools, json_mode)
-
     replay = client(qloo=_fixture_as("replay", tmp_path, monkeypatch), llm=NoBaselineLLM())
     again = events(replay.post("/api/compare", json=body))[-1]
     assert again["llm_only"] == first["llm_only"]
+
+
+def test_live_compare_keeps_the_first_saved_picks(tmp_path, monkeypatch):
+    """Once a brief's AI-alone picks are saved, later live clicks show the same picks instead of overwriting them."""
+    live = client(qloo=_fixture_as("live", tmp_path, monkeypatch), llm=BaselineLLM())
+    body = shortlist_body(resolve_preset(live))
+    first = events(live.post("/api/compare", json=body))[-1]
+
+    again_live = client(qloo=_fixture_as("live", tmp_path, monkeypatch), llm=NoBaselineLLM())
+    again = events(again_live.post("/api/compare", json=body))[-1]
+    assert again["type"] == "result" and again["llm_only"] == first["llm_only"]
 
 
 def test_replay_compare_without_saved_picks_is_a_clear_error(tmp_path, monkeypatch):

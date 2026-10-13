@@ -276,11 +276,12 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
             if not res.brand and not res.tags:
                 return {"type": "error", "code": "bad_request", "message": "Confirm a brand or at least one category first."}
             saved = _baseline_file(_label(res), brief)
-            if qloo.mode == "replay":
-                if not (saved and saved.exists()):
-                    return {"type": "error", "code": "replay_examples_only", "message": REPLAY_ONLY}
+            # Saved picks win in every mode, so the panel shows the same picks the write-up counts.
+            if saved and saved.exists():
                 s.append("Loading the AI-alone picks saved for this example (same model, no Qloo data)…")
                 suggestions = json.loads(saved.read_text())
+            elif qloo.mode == "replay":
+                return {"type": "error", "code": "replay_examples_only", "message": REPLAY_ONLY}
             else:
                 s.append("Asking the same AI model for partners, with no Qloo data…")
                 try:

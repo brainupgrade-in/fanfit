@@ -45,7 +45,7 @@ Sponsorship is a huge market, from tours and festival stages to podcasts and cre
   - "strong", "high" or "top" without a quoted value;
   - the age affinity index turned into a percentage of the audience.
 - **Backend:** FastAPI streams the agent's steps live to the page (NDJSON). Qloo access goes through one client with three modes: fixture, live with a disk cache, and replay, so the demo survives after the key expires. A parameter allowlist means nothing the user types reaches Qloo verbatim.
-- **Hosting:** k3s on an NVIDIA DGX Spark behind a Cloudflare tunnel. Plain HTML/JS with no framework. 55 tests.
+- **Hosting:** k3s on an NVIDIA DGX Spark behind a Cloudflare tunnel. Plain HTML/JS with no framework. 56 tests.
 
 ## Challenges we ran into
 - **Keeping an LLM honest about data.** The model happily turned a regional affinity score into "a large portion of listeners live in Denver", and pitched weak evidence as a strength. Prompting alone didn't fix it; a validator with explicit rules and passing only supportive evidence to the pitch writer did.
