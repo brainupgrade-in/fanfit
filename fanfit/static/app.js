@@ -1,0 +1,246 @@
+// FanFit client. All Qloo/LLM text is inserted with textContent (never innerHTML).
+const $ = (s) => document.querySelector(s);
+const AGE_LABEL = {
+  "24_and_younger": "24 and younger", "25_to_29": "25–29", "30_to_34": "30–34",
+  "35_to_44": "35–44", "45_to_54": "45–54", "55_and_older": "55 and older",
+};
+const TYPE_LABEL = { artist: "Artist", podcast: "Podcast", tv_show: "TV show", person: "Creator / athlete", brand: "Brand" };
+let config = { llm: false, qloo_mode: "fixture", presets: [] };
+let busy = false;
+
+function el(tag, attrs = {}, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === "class") n.className = v;
+    else if (k === "text") n.textContent = v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else if (v !== false && v != null) n.setAttribute(k, v === true ? "" : v);
+  }
+  for (const kid of kids.flat()) if (kid != null) n.append(kid instanceof Node ? kid : document.createTextNode(kid));
+  return n;
+}
+const typeKey = (urn) => (urn || "").split(":").pop();
+
+// ---------- streaming ----------
+async function stream(url, body, onStep) {
+  const res = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  if (!res.ok && res.headers.get("content-type")?.includes("application/json")) return res.json();
+  if (!res.ok) return { type: "error", code: "http", message: `Server error (${res.status}).` };
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "", last = null;
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\n")) >= 0) {
+      const line = buf.slice(0, i).trim();
+      buf = buf.slice(i + 1);
+      if (!line) continue;
+      const ev = JSON.parse(line);
+      if (ev.type === "step") onStep(ev.text); else last = ev;
+    }
+  }
+  return last || { type: "error", code: "internal", message: "The server closed the connection early." };
+}
+
+// ---------- trace / notices ----------
+function traceReset() {
+  const t = $("#trace"); t.replaceChildren(); t.hidden = false;
+  $("#empty-state").hidden = true;
+  const r = $(".results").getBoundingClientRect();
+  if (r.top < 0 || r.top > innerHeight * 0.6) $(".results").scrollIntoView({ block: "start" });
+}
+function traceRunning(text) {
+  const t = $("#trace");
+  t.querySelector("li.running")?.classList.remove("running");
+  t.append(el("li", { class: "running", text }));
+}
+function traceDone() { $("#trace li.running")?.classList.remove("running"); }
+function notice(text, kind = "info") {
+  const n = $("#notice");
+  if (!text) { n.hidden = true; return; }
+  n.className = "notice" + (kind === "error" ? " error" : "");
+  n.textContent = text; n.hidden = false;
+}
+function setBusy(b) {
+  busy = b;
+  document.querySelectorAll(".primary, .preset").forEach((x) => (x.disabled = b));
+}
+
+// ---------- flow ----------
+async function runResolve(payload, { autoConfirm = false } = {}) {
+  if (busy) return;
+  setBusy(true); notice(null);
+  $("#cards").replaceChildren(); $("#confirm").hidden = true; $("#footnote").hidden = true;
+  traceReset();
+  traceRunning(payload.preset ? "Loading example brief…" : "Starting…");
+  const r = await stream("/api/resolve", payload, traceRunning);
+  traceDone();
+  if (r.type === "error") { notice(r.message, "error"); setBusy(false); return; }
+  if (r.status === "unresolved") {
+    const missing = r.resolution.unresolved.length ? ` We couldn't find: ${r.resolution.unresolved.join(", ")}.` : "";
+    notice(`Qloo didn't recognise this brief.${missing} Try the brand's exact name, or a broader category such as "coffee" or "running".`, "error");
+    setBusy(false); return;
+  }
+  if (r.resolution.unresolved.length) notice(`Not found in Qloo and left out: ${r.resolution.unresolved.join(", ")}.`);
+  showConfirm(r.brief, r.resolution);
+  setBusy(false);
+  if (autoConfirm) runShortlist(collectConfirm());
+}
+
+let confirmState = null;
+function showConfirm(brief, res) {
+  confirmState = { brief: { ...brief }, brand: res.brand, candidates: res.brand_candidates || [], tags: [...res.tags] };
+  renderConfirm();
+}
+function renderConfirm() {
+  const s = confirmState, box = $("#confirm");
+  const brandPart = s.candidates.length > 1
+    ? el("label", {}, "Which brand did you mean? ",
+        el("select", { id: "c-brand", onchange: (e) => { s.brand = s.candidates.find((c) => c.entity_id === e.target.value) || null; } },
+          el("option", { value: "", text: "None of these (use categories only)" }),
+          s.candidates.map((c) => el("option", { value: c.entity_id, selected: s.brand?.entity_id === c.entity_id, text: c.name }))))
+    : el("div", { class: "chips" }, s.brand ? el("span", { class: "chip qloo", text: `Brand: ${s.brand.name}` }) : el("span", { class: "chip", text: "No brand match: using categories only" }));
+  const tags = el("div", { class: "chips" },
+    s.tags.map((t, i) => el("span", { class: "chip qloo" }, `Taste tag: ${t.name}`,
+      el("button", { type: "button", "aria-label": `Remove ${t.name}`, text: "×", onclick: () => { s.tags.splice(i, 1); renderConfirm(); } }))));
+  const meta = [
+    s.brief.age && `Age ${AGE_LABEL[s.brief.age]}`,
+    s.brief.gender && s.brief.gender,
+    s.brief.market && `Market: ${s.brief.market}`,
+    `Looking for: ${s.brief.partner_types.map((t) => TYPE_LABEL[t] + "s").join(", ")}`,
+  ].filter(Boolean).join(" · ");
+  box.replaceChildren(
+    el("h3", { text: "Is this what you meant?" }),
+    el("p", { text: "These are the exact Qloo entities FanFit will use as the taste signal. Remove anything that's off." }),
+    brandPart, tags, el("p", { text: meta }),
+    el("div", { class: "actions" },
+      el("button", { class: "primary", type: "button", text: "Find partners", onclick: () => runShortlist(collectConfirm()) })));
+  box.hidden = false;
+}
+function collectConfirm() {
+  const s = confirmState;
+  return { brief: s.brief, brand: s.brand, tags: s.tags };
+}
+
+async function runShortlist(payload) {
+  if (busy) return;
+  if (!payload.brand && !payload.tags.length) { notice("Keep a brand or at least one taste tag to search with.", "error"); return; }
+  setBusy(true); notice(null);
+  $("#confirm").hidden = true; $("#cards").replaceChildren();
+  traceRunning("Asking Qloo for partner affinities…");
+  const r = await stream("/api/shortlist", payload, traceRunning);
+  traceDone();
+  setBusy(false);
+  if (r.type === "error") { notice(r.message, "error"); $("#confirm").hidden = false; return; }
+  if (r.status === "empty") {
+    notice("No partners matched. Try removing the age band or adding another partner type.", "error");
+    $("#confirm").hidden = false; return;
+  }
+  if (r.llm === "failed") notice("The AI rationale is offline right now, so the cards show the Qloo evidence only.");
+  else if (r.llm === "off") notice("AI rationale is off on this server, so the cards show the Qloo evidence only.");
+  renderCards(r.cards, payload.brief);
+  $("#footnote").hidden = false;
+}
+
+// ---------- cards ----------
+function renderCards(cards, brief) {
+  $("#cards").replaceChildren(...cards.map((c) => renderCard(c, brief)));
+}
+function renderCard(c, brief) {
+  const ev = c.evidence;
+  const tags = Object.entries(ev).filter(([k]) => k.startsWith("tag:"));
+  const geo = Object.entries(ev).filter(([k]) => k.startsWith("geo:"));
+  const demo = Object.entries(ev).find(([k]) => k.startsWith("demo:"));
+  const trend = ev.trend;
+  const maxGeo = Math.max(...geo.map(([, v]) => v.affinity), 0.0001);
+  const market = (brief.market || "").toLowerCase();
+
+  const card = el("article", { class: "card" },
+    el("div", { class: "card-head" },
+      el("span", { class: "rank", text: `#${c.rank}` }),
+      el("h3", { text: c.partner.name }),
+      el("span", { class: "type", text: TYPE_LABEL[typeKey(c.partner.type)] || typeKey(c.partner.type) }),
+      trend ? el("span", { class: `trend ${trend.value >= 0 ? "up" : "down"}`, "data-ev": "trend",
+        text: `${trend.value >= 0 ? "▲" : "▼"} ${Math.abs(trend.value)} rank places in 6 months` }) : null),
+    el("div", { class: "score", "data-ev": "affinity" },
+      el("span", { text: "Qloo affinity" }),
+      el("div", { class: "bar", role: "img", "aria-label": `Affinity ${c.affinity.toFixed(2)} of 1` }, el("i", { style: `width:${Math.round(c.affinity * 100)}%` })),
+      el("b", { text: c.affinity.toFixed(2) })),
+    el("div", { class: "ev-grid" },
+      el("div", { class: "ev" },
+        el("h4", { text: "Shared taste" }),
+        tags.length ? el("div", { class: "chips" }, tags.map(([k, v]) => el("span", { class: "chip", "data-ev": k, text: v.value })))
+                    : el("p", { class: "hint", text: "No shared tags reported." }),
+        demo ? el("p", { class: "hint", "data-ev": demo[0], text: `${Math.round(demo[1].value * 100)}% of this audience is ${AGE_LABEL[demo[0].slice(5)]}` }) : null),
+      el("div", { class: "ev" },
+        el("h4", { text: "Where the audience is" }),
+        geo.length ? el("ul", { class: "regions" }, geo.map(([k, v]) =>
+          el("li", { "data-ev": k, class: v.value.toLowerCase() === market ? "target" : "" },
+            el("span", { text: v.value + (v.value.toLowerCase() === market ? " ★" : "") }),
+            el("div", { class: "bar" }, el("i", { style: `width:${Math.round((v.affinity / maxGeo) * 100)}%` })))))
+          : el("p", { class: "hint", text: "Regional data unavailable." }))));
+
+  if (c.claims?.length) {
+    card.append(el("div", { class: "why" },
+      el("h4", {}, "Why this fit ", el("small", { text: "· AI interpretation of the evidence above" })),
+      el("ul", {}, c.claims.map((cl) => el("li", {}, cl.text, ...cl.evidence_ids.map((id) => citeChip(card, id, ev[id])))))));
+  }
+  return card;
+}
+function citeChip(card, id, v) {
+  const label = id === "affinity" ? "affinity" : id === "trend" ? "trend"
+    : id.startsWith("demo:") ? `age ${AGE_LABEL[id.slice(5)] || id.slice(5)}` : (v?.value ?? id);
+  const on = () => card.querySelectorAll(`[data-ev="${CSS.escape(id)}"]`).forEach((n) => n.classList.add("hl"));
+  const off = () => card.querySelectorAll(".hl").forEach((n) => n.classList.remove("hl"));
+  return el("span", { class: "cite", tabindex: "0", title: `Evidence: ${v?.label || id}`, text: String(label),
+    onmouseenter: on, onmouseleave: off, onfocus: on, onblur: off });
+}
+
+// ---------- wiring ----------
+function selectTab(which) {
+  for (const t of ["text", "form"]) {
+    $(`#tab-${t}`).setAttribute("aria-selected", String(t === which));
+    $(`#pane-${t}`).hidden = t !== which;
+  }
+}
+$("#tab-text").addEventListener("click", () => selectTab("text"));
+$("#tab-form").addEventListener("click", () => selectTab("form"));
+
+$("#pane-text").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const text = $("#brief-text").value.trim();
+  if (!text) { notice("Describe your campaign first, or pick an example.", "error"); return; }
+  runResolve({ text });
+});
+$("#pane-form").addEventListener("submit", (e) => {
+  e.preventDefault();
+  const f = new FormData(e.target);
+  const brief = {
+    brand: f.get("brand") || null,
+    category_terms: f.get("category") ? [f.get("category")] : [],
+    age: f.get("age") || null,
+    market: f.get("market") || null,
+    partner_types: f.getAll("ptype"),
+  };
+  if (!brief.brand && !brief.category_terms.length) { notice("Enter a brand or a category.", "error"); return; }
+  if (!brief.partner_types.length) { notice("Pick at least one partner type.", "error"); return; }
+  runResolve({ brief });
+});
+
+(async function init() {
+  config = await fetch("/api/config").then((r) => r.json());
+  const banner = $("#banner");
+  if (config.qloo_mode === "fixture") { banner.textContent = "Demo mode: fictional sample data. Live Qloo data is coming soon."; banner.hidden = false; }
+  else if (config.qloo_mode === "replay") { banner.textContent = "Showing cached Qloo data for the example briefs."; banner.hidden = false; }
+  if (!config.llm) {
+    $("#brief-text").disabled = true;
+    $("#brief-text").placeholder = "Free-text briefs need the AI model, which is offline. Use the form or an example.";
+    selectTab("form");
+  }
+  $("#presets").replaceChildren(...config.presets.map((p) =>
+    el("button", { class: "preset", type: "button", onclick: () => runResolve({ preset: p.key }, { autoConfirm: true }) },
+      el("strong", { text: p.title }), el("span", { text: p.text }))));
+})();

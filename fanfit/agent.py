@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+from concurrent.futures import ThreadPoolExecutor
 from typing import Protocol
 
 import httpx
@@ -99,7 +100,9 @@ def resolve_with_agent(text: str, qloo: QlooClient, llm: LLM, trace: list[str]) 
                 seen_tags.update({t["id"]: t for t in result})
             if not result:
                 unresolved.append(term)
-            trace.append(f"agent: {name}({term!r}) → {len(result)} match(es)")
+            what = "brand" if name == "search_brand" else "taste tag"
+            found = f"{len(result)} match" + ("es" if len(result) != 1 else "") if result else "not found"
+            trace.append(f"Agent looked up {what} “{term}” in Qloo: {found}")
             messages.append({"role": "tool", "tool_call_id": call["id"], "content": json.dumps(result)})
     raise RuntimeError("agent did not finish within the tool-call budget")
 
@@ -120,14 +123,33 @@ def _finish(args, seen_brands, seen_tags, unresolved) -> tuple[Brief, Resolution
 CLAIMS_SYSTEM = """You explain why a sponsorship partner fits a brand, using ONLY the evidence given.
 Return JSON: {"claims": [{"text": "...", "evidence_ids": ["<key from evidence>"]}]}.
 2-4 claims, one sentence each. Every claim must cite at least one evidence key.
-Do not mention any fact, partner, tag, number or place that is not in the evidence."""
+Do not mention any fact, partner, tag, number or place that is not in the evidence.
+If you call something strong, high or top, quote its value (e.g. "affinity 0.42", "18% of fans").
+The partner is the given partner_type (an artist, podcast, show or creator), NOT a brand: refer to it by name.
+Write for a brand marketer: plain words, numbers rounded to 2 decimals, shares as percentages."""
 
 
 def write_claims(card: dict, cards: list[dict], brand_label: str, llm: LLM) -> list[dict]:
-    payload = {"brand": brand_label, "partner": card["partner"]["name"], "evidence": card["evidence"]}
+    payload = {"brand": brand_label, "partner": card["partner"]["name"],
+               "partner_type": card["partner"]["type"].split(":")[-1], "evidence": card["evidence"]}
     msg = llm.chat([{"role": "system", "content": CLAIMS_SYSTEM}, {"role": "user", "content": json.dumps(payload)}], json_mode=True)
     try:
         claims = json.loads(msg.get("content") or "{}").get("claims", [])
     except json.JSONDecodeError:
         return []
     return validate_claims(card, claims, foreign_names_for(card, cards))
+
+
+def add_claims(cards: list[dict], brand_label: str, llm: LLM) -> bool:
+    """Fill card["claims"] for all cards in parallel. Returns False if the LLM failed (cards keep evidence only)."""
+    def one(card):
+        card["claims"] = write_claims(card, cards, brand_label, llm)
+
+    try:
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            list(pool.map(one, cards))
+    except Exception:
+        for c in cards:
+            c["claims"] = []
+        return False
+    return True

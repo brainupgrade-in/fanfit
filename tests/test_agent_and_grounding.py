@@ -61,7 +61,7 @@ def test_validator_keeps_only_grounded_claims():
     tag_key = next(k for k in card["evidence"] if k.startswith("tag:"))
     other = cards[1]["partner"]["name"]
     claims = [
-        {"text": "Strong Qloo affinity with the brand.", "evidence_ids": ["affinity"]},
+        {"text": "Strong Qloo affinity (0.42) with the brand.", "evidence_ids": ["affinity"]},
         {"text": f"Fans share a taste for {card['evidence'][tag_key]['value']}.", "evidence_ids": [tag_key]},
         {"text": "No evidence cited.", "evidence_ids": []},
         {"text": "Cites a key not on the card.", "evidence_ids": ["tag:urn:tag:invented"]},
@@ -77,3 +77,37 @@ def test_write_claims_survives_bad_json():
     cards = _cards()
     llm = ScriptedLLM([{"role": "assistant", "content": "not json"}])
     assert write_claims(cards[0], cards, "Northbound Cold Brew", llm) == []
+
+
+def test_strength_words_need_a_number():
+    cards = _cards()
+    card = cards[0]
+    claims = [
+        {"text": "Appeals strongly to 25-29 year olds.", "evidence_ids": ["affinity"]},
+        {"text": "High affinity (0.42) with the brand.", "evidence_ids": ["affinity"]},
+    ]
+    from fanfit.grounding import foreign_names_for
+
+    kept = validate_claims(card, claims, foreign_names_for(card, cards))
+    assert [c["text"] for c in kept] == ["High affinity (0.42) with the brand."]
+
+
+def test_add_claims_runs_every_card_and_reports_llm_failure():
+    from fanfit.agent import add_claims
+
+    cards = _cards()
+
+    class Echo:
+        def chat(self, messages, tools=None, json_mode=False):
+            return {"content": json.dumps({"claims": [{"text": "Qloo affinity backs this.", "evidence_ids": ["affinity"]}]})}
+
+    assert add_claims(cards, "Northbound Cold Brew", Echo()) is True
+    assert all(len(c["claims"]) == 1 for c in cards)
+
+    class Down:
+        def chat(self, *a, **k):
+            raise RuntimeError("provider down")
+
+    cards = _cards()
+    assert add_claims(cards, "Northbound Cold Brew", Down()) is False
+    assert all(c["claims"] == [] for c in cards)

@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FanFit</title>
+  <meta name="description" content="Find sponsorship partners whose fans already love your brand, ranked by Qloo taste affinity.">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="top">
+    <div class="brandmark">Fan<span>Fit</span></div>
+    <p class="tagline">Sponsorship partners whose fans already love your brand, ranked by real taste data from Qloo, not follower counts.</p>
+  </header>
+
+  <div id="banner" class="banner" hidden></div>
+
+  <main class="layout">
+    <section class="panel brief" aria-labelledby="brief-h">
+      <h2 id="brief-h">Your brief</h2>
+
+      <div class="presets">
+        <p class="label">Try an example</p>
+        <div id="presets" class="preset-list"></div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-text" aria-selected="true" aria-controls="pane-text">Describe it</button>
+        <button role="tab" id="tab-form" aria-selected="false" aria-controls="pane-form">Fill a form</button>
+      </div>
+
+      <form id="pane-text" class="pane" role="tabpanel" aria-labelledby="tab-text">
+        <label for="brief-text" class="sr-only">Campaign brief</label>
+        <textarea id="brief-text" rows="5" maxlength="1000" placeholder="e.g. We're launching a premium cold brew to 25–29 year olds in Austin and want artists and podcasts to partner with."></textarea>
+        <p class="hint">Only short lookup terms (brand, category words) are sent to Qloo. Never your whole brief, and never personal data.</p>
+        <button type="submit" class="primary">Find partners</button>
+      </form>
+
+      <form id="pane-form" class="pane" role="tabpanel" aria-labelledby="tab-form" hidden>
+        <label>Brand <input name="brand" maxlength="40" placeholder="Brand name"></label>
+        <label>Category or vibe <input name="category" maxlength="40" placeholder="e.g. cold brew"></label>
+        <div class="row">
+          <label>Age band
+            <select name="age">
+              <option value="">Any</option>
+              <option value="24_and_younger">24 and younger</option>
+              <option value="25_to_29">25–29</option>
+              <option value="30_to_34">30–34</option>
+              <option value="35_to_44">35–44</option>
+              <option value="45_to_54">45–54</option>
+              <option value="55_and_older">55 and older</option>
+            </select>
+          </label>
+          <label>Market <input name="market" maxlength="40" placeholder="e.g. Austin"></label>
+        </div>
+        <fieldset>
+          <legend>Partner types</legend>
+          <label class="check"><input type="checkbox" name="ptype" value="artist" checked> Artists</label>
+          <label class="check"><input type="checkbox" name="ptype" value="podcast" checked> Podcasts</label>
+          <label class="check"><input type="checkbox" name="ptype" value="tv_show"> TV shows</label>
+          <label class="check"><input type="checkbox" name="ptype" value="person"> Creators &amp; athletes</label>
+        </fieldset>
+        <button type="submit" class="primary">Look up in Qloo</button>
+      </form>
+    </section>
+
+    <section class="panel results" aria-live="polite" aria-labelledby="results-h">
+      <h2 id="results-h" class="sr-only">Results</h2>
+      <div id="empty-state" class="empty-state">
+        <p class="big">Pick an example or describe your campaign.</p>
+        <p>FanFit's agent turns your brief into Qloo entities, asks you to confirm them, then ranks partners by how much their fans' tastes overlap with your brand. Every claim on a card points to the evidence behind it.</p>
+      </div>
+      <ol id="trace" class="trace" hidden></ol>
+      <div id="notice" class="notice" hidden></div>
+      <div id="confirm" class="confirm" hidden></div>
+      <div id="cards" class="cards"></div>
+      <p id="footnote" class="footnote" hidden>Qloo scores describe aggregate taste affinities across audiences, not individuals. "Why this fit" lines are AI interpretation, limited to the evidence on each card.</p>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
