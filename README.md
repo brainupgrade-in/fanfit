@@ -6,6 +6,8 @@ Live demo: **https://agenticai-fanfit.brainupgrade.in** (no login) · Built for 
 
 > Runs on **live Qloo data** (hackathon API). The three examples on the page are real brands: Patagonia, Glossier, Oatly.
 
+![FanFit ranking artists for a Patagonia tour sponsorship by live Qloo taste affinity, with an evidence card per partner](docs/screenshots/1-shortlist.png)
+
 ## The problem
 
 Brands pick sponsorship partners (artists, podcasts, shows, creators) mostly by reach and gut feel. Reach says nothing about whether *those fans like this kind of brand*. Ask a plain LLM "who should sponsor X?" and you get stereotypes ("energy drinks for gamers"), because it has no affinity data. Independent creators have the mirror problem: they don't know which brands to pitch, or what evidence to put in the pitch.
@@ -23,6 +25,14 @@ Brands pick sponsorship partners (artists, podcasts, shows, creators) mostly by 
 5. **"Why this fit" lines** are written by an LLM but **each one cites the evidence it rests on**. A validator drops any line that cites nothing, cites evidence not on the card, or names another card's partner or tags. It also drops any line that says "strong", "high" or "top" without quoting the value, or that turns the age index into a percentage of the audience. Hovering a citation highlights that evidence.
 6. **"Draft outreach email"** writes a pitch to the partner. Every fact in the email is an evidence-cited point, and it only uses evidence that argues *for* the deal (an under-indexed age band is never sold as a strength).
 7. **"Would AI alone get this right?"** runs the same brief through the same model with no Qloo access. It then checks each of its picks in Qloo (in FanFit's shortlist / Qloo ranks it low / not a fit / not found) and lists the partners only FanFit found.
+
+| Hover a citation to see its evidence | Outreach email, every fact cited |
+|---|---|
+| ![A "why this fit" citation hovered on a Glossier card, highlighting the age-band evidence it rests on](docs/screenshots/2-evidence-hover.png) | ![A drafted outreach email to Houndmouth whose points each cite card evidence](docs/screenshots/3-outreach-email.png) |
+
+**AI alone vs. FanFit** on the Patagonia brief: the model's own picks without Qloo, each looked up in Qloo, next to the partners only FanFit found.
+
+![The comparison panel: all 8 AI-alone picks rank below FanFit's shortlist in Qloo for this brief](docs/screenshots/4-ai-alone-vs-fanfit.png)
 
 ## How Qloo is used
 
