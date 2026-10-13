@@ -151,3 +151,42 @@ def test_rate_limit_keys_on_cloudflare_visitor_ip():
     assert c.post("/api/shortlist", json=body, headers={"CF-Connecting-IP": "203.0.113.7"}).status_code == 200
     assert c.post("/api/shortlist", json=body, headers={"CF-Connecting-IP": "203.0.113.8"}).status_code == 200
     assert c.post("/api/shortlist", json=body, headers={"CF-Connecting-IP": "203.0.113.7"}).status_code == 429
+
+
+def _fixture_as(mode, cache_dir, monkeypatch):
+    """The fixture world under another mode's name; its presets stay the fictional ones."""
+    from fanfit import presets
+    monkeypatch.setattr("fanfit.web.presets_for", lambda _mode: presets.FIXTURE_PRESETS)
+    q = FixtureQlooClient()
+    q.mode, q.cache_dir = mode, cache_dir
+    return q
+
+
+def test_replay_reuses_the_ai_alone_picks_saved_while_live(tmp_path, monkeypatch):
+    live = client(qloo=_fixture_as("live", tmp_path, monkeypatch), llm=BaselineLLM())
+    body = shortlist_body(resolve_preset(live))
+    first = events(live.post("/api/compare", json=body))[-1]
+    assert first["type"] == "result"
+
+    class NoBaselineLLM(BaselineLLM):  # a different answer would show up if the picks weren't reused
+        def chat(self, messages, tools=None, json_mode=False):
+            assert "sponsorship strategist" not in messages[0]["content"]
+            return super().chat(messages, tools, json_mode)
+
+    replay = client(qloo=_fixture_as("replay", tmp_path, monkeypatch), llm=NoBaselineLLM())
+    again = events(replay.post("/api/compare", json=body))[-1]
+    assert again["llm_only"] == first["llm_only"]
+
+
+def test_replay_compare_without_saved_picks_is_a_clear_error(tmp_path, monkeypatch):
+    c = client(qloo=_fixture_as("replay", tmp_path, monkeypatch), llm=BaselineLLM())
+    res = events(c.post("/api/compare", json=shortlist_body(resolve_preset(c))))[-1]
+    assert res["type"] == "error" and res["code"] == "replay_examples_only"
+
+
+def test_replay_accepts_examples_only(tmp_path, monkeypatch):
+    c = client(qloo=_fixture_as("replay", tmp_path, monkeypatch), llm=ClaimsLLM())
+    assert resolve_preset(c)["status"] == "ok"
+    for body in ({"text": "Nike wants podcasts"}, {"brief": {"brand": "Nike"}}):
+        res = events(c.post("/api/resolve", json=body))[-1]
+        assert res["type"] == "error" and res["code"] == "replay_examples_only"

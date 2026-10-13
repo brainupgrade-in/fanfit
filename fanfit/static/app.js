@@ -327,13 +327,25 @@ $("#pane-form").addEventListener("submit", (e) => {
   config = await fetch("/api/config").then((r) => r.json());
   const banner = $("#banner");
   if (config.qloo_mode === "fixture") { banner.textContent = "Demo mode: fictional sample data, not live Qloo results."; banner.hidden = false; }
-  else if (config.qloo_mode === "replay") { banner.textContent = "Showing cached Qloo data for the example briefs."; banner.hidden = false; }
   if (!config.llm) {
     $("#brief-text").disabled = true;
     $("#brief-text").placeholder = "Free-text briefs need the AI model, which is offline. Use the form or an example.";
     selectTab("form");
   }
-  $("#presets").replaceChildren(...config.presets.map((p) =>
-    el("button", { class: "preset", type: "button", onclick: () => runResolve({ preset: p.key }, { autoConfirm: true }) },
-      el("strong", { text: p.title }), el("span", { text: p.text }))));
+  if (config.qloo_mode === "replay") {
+    // The hackathon key has ended: only the cached examples can run, so don't offer inputs that would fail.
+    banner.textContent = "Live Qloo access for the hackathon has ended, so FanFit is replaying cached Qloo data. Every example works.";
+    banner.hidden = false;
+    document.querySelectorAll(".tabs, #pane-text, #pane-form").forEach((n) => (n.hidden = true));
+    $("#empty-state .big").textContent = "Pick an example to see a cached Qloo run.";
+    $(".presets").append(el("p", { class: "hint", text: "Typing your own brief needs live Qloo access, which ended with the hackathon. Each example above is a real Qloo run, cached." }));
+  }
+  const run = (p) => () => runResolve({ preset: p.key }, { autoConfirm: true });
+  const [featured, more] = [config.presets.slice(0, 3), config.presets.slice(3)];
+  $("#presets").replaceChildren(
+    ...featured.map((p) => el("button", { class: "preset", type: "button", onclick: run(p) },
+      el("strong", { text: p.title }), el("span", { text: p.text }))),
+    ...(more.length ? [el("p", { class: "label more", text: "More brands" }),
+      el("div", { class: "preset-more" }, more.map((p) =>
+        el("button", { class: "preset chip-btn", type: "button", title: `${p.title}: ${p.text}`, onclick: run(p) }, p.title.split(" →")[0])))] : []));
 })();

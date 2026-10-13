@@ -6,6 +6,7 @@ Run: uv run uvicorn fanfit.web:app --reload
 """
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -31,6 +32,8 @@ from fanfit.qloo import QlooBadRequest, QlooUnavailable, make_client
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 STATIC = Path(__file__).resolve().parent / "static"
 log = logging.getLogger("uvicorn.error")
+REPLAY_ONLY = ("Live Qloo access for the hackathon has ended, so FanFit is replaying cached Qloo data. "
+               "Every example works; your own briefs need live access.")
 
 
 def client_ip(req: Request) -> str:
@@ -180,6 +183,8 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
             return resp
 
         def work(s: _Stream):
+            if qloo.mode == "replay" and not body.preset:
+                return {"type": "error", "code": "replay_examples_only", "message": REPLAY_ONLY}
             if body.preset:
                 if body.preset not in presets:
                     return {"type": "error", "code": "bad_request", "message": "Unknown preset."}
@@ -213,6 +218,13 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
 
     def _label(res: Resolution) -> str:
         return res.brand["name"] if res.brand else ", ".join(t["name"] for t in res.tags)
+
+    def _baseline_file(label: str, brief: Brief) -> Path | None:
+        """Where a brief's AI-alone picks are kept, next to the Qloo cache, so replay mode can show the same comparison."""
+        if not hasattr(qloo, "cache_dir"):
+            return None
+        key = hashlib.sha256(json.dumps([label, asdict(brief)], sort_keys=True).encode()).hexdigest()[:32]
+        return Path(qloo.cache_dir) / f"baseline-{key}.json"
 
     @app.post("/api/shortlist")
     def api_shortlist(body: ShortlistIn, req: Request):
@@ -263,11 +275,21 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
             brief, res = _confirmed(body)
             if not res.brand and not res.tags:
                 return {"type": "error", "code": "bad_request", "message": "Confirm a brand or at least one category first."}
-            s.append("Asking the same AI model for partners, with no Qloo data…")
-            try:
-                suggestions = llm_only_partners(_label(res), brief, llm)
-            except Exception:  # noqa: BLE001
-                return {"type": "error", "code": "llm_failed", "message": "The AI model didn't answer. Try again in a moment."}
+            saved = _baseline_file(_label(res), brief)
+            if qloo.mode == "replay":
+                if not (saved and saved.exists()):
+                    return {"type": "error", "code": "replay_examples_only", "message": REPLAY_ONLY}
+                s.append("Loading the AI-alone picks saved for this example (same model, no Qloo data)…")
+                suggestions = json.loads(saved.read_text())
+            else:
+                s.append("Asking the same AI model for partners, with no Qloo data…")
+                try:
+                    suggestions = llm_only_partners(_label(res), brief, llm)
+                except Exception:  # noqa: BLE001
+                    return {"type": "error", "code": "llm_failed", "message": "The AI model didn't answer. Try again in a moment."}
+                if saved and suggestions:
+                    saved.parent.mkdir(parents=True, exist_ok=True)
+                    saved.write_text(json.dumps(suggestions))
             s.append(f"AI alone suggested {len(suggestions)} partners. Checking each one in Qloo…")
             pool = rank_pool(res, brief, qloo)
             cards = [{"rank": i, "partner": {k: c[k] for k in ("entity_id", "name", "type")}, "affinity": c["affinity"]}
