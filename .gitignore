@@ -4,3 +4,6 @@ __pycache__/
 *.pyc
 node_modules/
 .qloo-cache/
+CLAUDE.md
+docs/official-rules.txt
+docs/overview.txt
