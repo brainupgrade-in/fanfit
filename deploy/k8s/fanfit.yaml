@@ -1,0 +1,104 @@
+# FanFit on Spark k3s. Single replica: the rate limiter is in memory.
+# The Secret `fanfit-env` is created by deploy/deploy.sh from ./.env (never committed).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: fanfit
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qloo-cache
+  namespace: fanfit
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fanfit
+  namespace: fanfit
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate  # RWO cache volume
+  selector:
+    matchLabels: {app: fanfit}
+  template:
+    metadata:
+      labels: {app: fanfit}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        fsGroup: 10001
+      containers:
+        - name: fanfit
+          image: IMAGE_PLACEHOLDER
+          imagePullPolicy: Never  # imported straight into k3s containerd by deploy.sh
+          ports:
+            - containerPort: 8000
+          envFrom:
+            - secretRef:
+                name: fanfit-env
+          env:
+            - name: QLOO_CACHE_DIR
+              value: /data/qloo-cache
+          volumeMounts:
+            - name: cache
+              mountPath: /data/qloo-cache
+          readinessProbe:
+            httpGet: {path: /api/config, port: 8000}
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: {path: /api/config, port: 8000}
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          resources:
+            requests: {cpu: 50m, memory: 128Mi}
+            limits: {memory: 512Mi}
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: {drop: [ALL]}
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: qloo-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fanfit
+  namespace: fanfit
+spec:
+  selector: {app: fanfit}
+  ports:
+    - port: 80
+      targetPort: 8000
+---
+# Traffic: Cloudflare -> spark-k3s tunnel -> ingress-nginx -> here. TLS ends at Cloudflare.
+# The host must keep the `agenticai` prefix (zone page rules). Rendered by deploy.sh from $APP_HOST.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fanfit
+  namespace: fanfit
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"  # the UI streams agent steps live
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "120"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: APP_HOST_PLACEHOLDER
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: fanfit
+                port:
+                  number: 80

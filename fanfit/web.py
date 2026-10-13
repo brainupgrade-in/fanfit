@@ -118,7 +118,7 @@ def _stream(work) -> StreamingResponse:
         while (ev := s.q.get()) is not None:
             yield json.dumps(ev) + "\n"
 
-    return StreamingResponse(gen(), media_type="application/x-ndjson")
+    return StreamingResponse(gen(), media_type="application/x-ndjson", headers={"X-Accel-Buffering": "no", "Cache-Control": "no-cache"})
 
 
 def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastAPI:
