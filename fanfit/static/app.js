@@ -210,50 +210,48 @@ $("#compare-btn").addEventListener("click", runCompare);
 function renderCards(cards, brief) {
   $("#cards").replaceChildren(...cards.map((c) => renderCard(c, brief)));
 }
+function ageText(key, v) {
+  const band = AGE_LABEL[key.slice(5)] || key.slice(5);
+  const idx = `${v.value >= 0 ? "+" : "−"}${Math.abs(v.value).toFixed(2)}`;
+  if (v.value >= 0.2) return `Over-indexes with ${band} year olds (${idx})`;
+  if (v.value <= -0.2) return `Under-indexes with ${band} year olds (${idx})`;
+  return `Roughly average reach with ${band} year olds (${idx})`;
+}
 function renderCard(c, brief) {
   const ev = c.evidence;
-  const tags = Object.entries(ev).filter(([k]) => k.startsWith("tag:"));
-  const geo = Object.entries(ev).filter(([k]) => k.startsWith("geo:"));
+  const tastes = Object.entries(ev).filter(([k]) => k.startsWith("taste:"));
   const demo = Object.entries(ev).find(([k]) => k.startsWith("demo:"));
-  const trend = ev.trend;
-  const maxGeo = Math.max(...geo.map(([, v]) => v.affinity), 0.0001);
-  const market = (brief.market || "").toLowerCase();
 
   const card = el("article", { class: "card" },
     el("div", { class: "card-head" },
       el("span", { class: "rank", text: `#${c.rank}` }),
       el("h3", { text: c.partner.name }),
-      el("span", { class: "type", text: TYPE_LABEL[typeKey(c.partner.type)] || typeKey(c.partner.type) }),
-      trend ? el("span", { class: `trend ${trend.value >= 0 ? "up" : "down"}`, "data-ev": "trend",
-        text: `${trend.value >= 0 ? "▲" : "▼"} ${Math.abs(trend.value)} rank places in 6 months` }) : null),
+      el("span", { class: "type", text: TYPE_LABEL[typeKey(c.partner.type)] || typeKey(c.partner.type) })),
     el("div", { class: "score", "data-ev": "affinity" },
       el("span", { text: "Qloo affinity" }),
       el("div", { class: "bar", role: "img", "aria-label": `Affinity ${c.affinity.toFixed(2)} of 1` }, el("i", { style: `width:${Math.round(c.affinity * 100)}%` })),
       el("b", { text: c.affinity.toFixed(2) })),
     el("div", { class: "ev-grid" },
       el("div", { class: "ev" },
-        el("h4", { text: "Shared taste" }),
-        tags.length ? el("div", { class: "chips" }, tags.map(([k, v]) => el("span", { class: "chip", "data-ev": k, text: v.value })))
-                    : el("p", { class: "hint", text: "No shared tags reported." }),
-        demo ? el("p", { class: "hint", "data-ev": demo[0], text: `${Math.round(demo[1].value * 100)}% of this audience is ${AGE_LABEL[demo[0].slice(5)]}` }) : null),
+        el("h4", { text: "Their audience is into" }),
+        tastes.length ? el("div", { class: "chips" }, tastes.map(([k, v]) => el("span", { class: "chip", "data-ev": k, text: v.value })))
+                      : el("p", { class: "hint", text: "No taste tags reported." })),
       el("div", { class: "ev" },
-        el("h4", { text: "Strongest regional affinity" }),
-        geo.length ? el("ul", { class: "regions" }, geo.map(([k, v]) =>
-          el("li", { "data-ev": k, class: v.value.toLowerCase() === market ? "target" : "" },
-            el("span", { text: v.value + (v.value.toLowerCase() === market ? " ★" : "") }),
-            el("div", { class: "bar" }, el("i", { style: `width:${Math.round((v.affinity / maxGeo) * 100)}%` })))))
-          : el("p", { class: "hint", text: "Regional data unavailable." }))));
+        el("h4", { text: "Audience fit" }),
+        demo ? el("p", { class: "hint", "data-ev": demo[0], text: ageText(...demo) + (demo[1].target ? "" : " (their strongest age band)") }) : null,
+        ev.market ? el("p", { class: "hint", "data-ev": "market", text: `Ranked for ${ev.market.value} with a Qloo location signal` }) : null,
+        !demo && !ev.market ? el("p", { class: "hint", text: "No audience profile reported." }) : null)));
 
+  if (c.claims?.length) {
+    card.append(el("div", { class: "why" },
+      el("h4", {}, "Why this fit ", el("small", { text: "· AI interpretation of the evidence above" })),
+      el("ul", {}, c.claims.map((cl) => el("li", {}, cl.text, ...cl.evidence_ids.map((id) => citeChip(card, id, ev[id])))))));
+  }
   if (config.llm) {
     const out = el("div", { class: "pitch-out" });
     const btn = el("button", { class: "secondary small", type: "button", text: "Draft outreach email",
       onclick: () => runPitch(c, card, btn, out) });
     card.append(el("div", { class: "pitch" }, btn, out));
-  }
-  if (c.claims?.length) {
-    card.append(el("div", { class: "why" },
-      el("h4", {}, "Why this fit ", el("small", { text: "· AI interpretation of the evidence above" })),
-      el("ul", {}, c.claims.map((cl) => el("li", {}, cl.text, ...cl.evidence_ids.map((id) => citeChip(card, id, ev[id])))))));
   }
   return card;
 }
@@ -286,8 +284,8 @@ async function runPitch(c, cardEl, btn, out) {
     el("div", { class: "email-actions" }, copy, el("span", { class: "hint", text: "Every fact in this draft cites the card's Qloo evidence." }))));
 }
 function citeChip(card, id, v) {
-  const label = id === "affinity" ? "affinity" : id === "trend" ? "trend"
-    : id.startsWith("demo:") ? `age ${AGE_LABEL[id.slice(5)] || id.slice(5)}` : (v?.value ?? id);
+  const label = id === "affinity" ? "affinity"
+    : id.startsWith("demo:") ? `age ${AGE_LABEL[id.slice(5)] || id.slice(5)}` : id === "market" ? `market` : (v?.value ?? id);
   const on = () => card.querySelectorAll(`[data-ev="${CSS.escape(id)}"]`).forEach((n) => n.classList.add("hl"));
   const off = () => card.querySelectorAll(".hl").forEach((n) => n.classList.remove("hl"));
   return el("span", { class: "cite", tabindex: "0", title: `Evidence: ${v?.label || id}`, text: String(label),
@@ -328,7 +326,7 @@ $("#pane-form").addEventListener("submit", (e) => {
 (async function init() {
   config = await fetch("/api/config").then((r) => r.json());
   const banner = $("#banner");
-  if (config.qloo_mode === "fixture") { banner.textContent = "Demo mode: fictional sample data. Live Qloo data is coming soon."; banner.hidden = false; }
+  if (config.qloo_mode === "fixture") { banner.textContent = "Demo mode: fictional sample data, not live Qloo results."; banner.hidden = false; }
   else if (config.qloo_mode === "replay") { banner.textContent = "Showing cached Qloo data for the example briefs."; banner.hidden = false; }
   if (!config.llm) {
     $("#brief-text").disabled = true;

@@ -35,20 +35,17 @@ PARTNERS = {
     "urn:entity:person": ["Ava Stride", "Leo Kettle", "Priya Ramp", "Marcus Vane", "Nina Board", "Theo Summit",
                           "Lena Fuego", "Omar Grind"],
 }
-REGIONS = ["Austin", "Portland", "Denver", "Brooklyn", "Los Angeles", "Chicago", "Seattle", "Miami", "Atlanta", "Nashville"]
 BANDS = ["24_and_younger", "25_to_29", "30_to_34", "35_to_44", "45_to_54", "55_and_older"]
 
 
 def entity(name, etype, tags):
-    skew = [rng.random() ** 2 for _ in BANDS]
-    total = sum(skew)
+    # Shapes follow live Qloo (checked 2026-10-13): age values are -1..1 affinity indices.
     return {
         "entity_id": uid(name), "name": name, "type": etype,
         "popularity": round(rng.uniform(0.2, 0.95), 3),
         "tags": [tag_id[t] for t in tags],
-        "regions": {r: round(rng.random(), 3) for r in rng.sample(REGIONS, 5)},
-        "demographics": {"age": {b: round(s / total, 3) for b, s in zip(BANDS, skew)}},
-        "trend": [{"date": f"2026-{m:02d}-01", "population_rank_delta": rng.randint(-20, 25)} for m in range(5, 11)],
+        "demographics": {"age": {b: round(rng.uniform(-1, 1), 2) for b in BANDS},
+                         "gender": {"male": (g := round(rng.uniform(-0.5, 0.5), 2)), "female": -g}},
     }
 
 

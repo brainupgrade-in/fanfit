@@ -25,8 +25,8 @@ from pydantic import BaseModel, Field
 
 from fanfit.agent import OpenAICompatLLM, add_claims, draft_pitch, llm_only_partners, resolve_with_agent
 from fanfit.pipeline import MAX_CARDS, Brief, Resolution, compare_with_qloo, rank_pool, resolve, shortlist
-from fanfit.presets import PRESETS
-from fanfit.qloo import QlooUnavailable, make_client
+from fanfit.presets import presets_for
+from fanfit.qloo import QlooBadRequest, QlooUnavailable, make_client
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 STATIC = Path(__file__).resolve().parent / "static"
@@ -133,6 +133,8 @@ def _stream(work) -> StreamingResponse:
             s.q.put(work(s))
         except QlooUnavailable as e:
             s.q.put({"type": "error", "code": "qloo_unavailable", "message": f"Qloo didn't respond ({e}). Try again, or pick a preset."})
+        except QlooBadRequest as e:
+            s.q.put({"type": "error", "code": "qloo_rejected", "message": f"Qloo couldn't use part of this brief ({e}). Try simpler wording."})
         except Exception as e:  # noqa: BLE001 - last-resort guard so the stream always ends
             s.q.put({"type": "error", "code": "internal", "message": f"Something went wrong: {type(e).__name__}"})
         s.q.put(None)
@@ -149,7 +151,8 @@ def _stream(work) -> StreamingResponse:
 def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastAPI:
     qloo = qloo or make_client()
     llm = llm if llm is not None else OpenAICompatLLM.from_env()
-    limiter = limiter or RateLimiter(int(os.environ.get("RATE_PER_IP_HOUR", 20)), int(os.environ.get("RATE_GLOBAL_DAY", 500)))
+    limiter = limiter or RateLimiter(int(os.environ.get("RATE_PER_IP_HOUR", 20)), int(os.environ.get("RATE_GLOBAL_DAY", 150)))
+    presets = presets_for(qloo.mode)
     app = FastAPI(title="FanFit")
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
@@ -168,7 +171,7 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
         return {
             "qloo_mode": qloo.mode,
             "llm": bool(llm),
-            "presets": [{"key": k, "title": p["title"], "text": p["text"]} for k, p in PRESETS.items()],
+            "presets": [{"key": k, "title": p["title"], "text": p["text"]} for k, p in presets.items()],
         }
 
     @app.post("/api/resolve")
@@ -178,9 +181,9 @@ def create_app(qloo=None, llm=None, limiter: RateLimiter | None = None) -> FastA
 
         def work(s: _Stream):
             if body.preset:
-                if body.preset not in PRESETS:
+                if body.preset not in presets:
                     return {"type": "error", "code": "bad_request", "message": "Unknown preset."}
-                brief = PRESETS[body.preset]["brief"]
+                brief = presets[body.preset]["brief"]
                 res = resolve(brief, qloo)
                 s.append(f"Preset resolved: {res.brand['name'] if res.brand else 'no brand'}")
             elif body.text:

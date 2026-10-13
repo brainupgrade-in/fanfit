@@ -63,3 +63,40 @@ def test_live_retries_once_on_429_then_gives_up(tmp_path):
 def test_replay_miss_is_unavailable(tmp_path):
     with pytest.raises(QlooUnavailable):
         ReplayQlooClient(tmp_path).get("/search", {"query": "nope"})
+
+
+def test_429_backs_off_then_succeeds(tmp_path, monkeypatch):
+    import fanfit.qloo as qm
+
+    slept, calls = [], []
+    monkeypatch.setattr(qm.time, "sleep", lambda s: slept.append(s))
+
+    def handler(req):
+        calls.append(1)
+        return httpx.Response(429, json={}) if len(calls) == 1 else httpx.Response(200, json={"results": []})
+
+    assert _live(tmp_path, handler).get("/search", {"query": "coffee"}) == {"results": []}
+    assert len(calls) == 2 and slept and slept[0] >= 1.0
+
+
+def test_400_raises_bad_request_with_qloo_message(tmp_path):
+    from fanfit.qloo import QlooBadRequest
+
+    def handler(req):
+        return httpx.Response(400, json={"errors": [{"message": "invalid location"}]})
+
+    with pytest.raises(QlooBadRequest, match="invalid location"):
+        _live(tmp_path, handler).get("/v2/insights", {"filter.type": "urn:entity:artist", "signal.location.query": "Londn"})
+
+
+def test_throttle_spaces_requests():
+    from fanfit.qloo import Throttle
+
+    t = Throttle(per_second=4)
+    now = [100.0]
+    waits = []
+    t._clock = lambda: now[0]
+    t._sleep = lambda s: (waits.append(s), now.__setitem__(0, now[0] + s))
+    for _ in range(5):
+        t.wait()
+    assert abs(sum(waits) - 1.0) < 1e-6  # 5 requests at 4/s need 1s of spacing in total

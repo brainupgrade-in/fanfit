@@ -120,13 +120,14 @@ def _finish(args, seen_brands, seen_tags, unresolved) -> tuple[Brief, Resolution
     return brief, Resolution(brand=brand, brand_candidates=list(seen_brands.values()), tags=tags, unresolved=unresolved)
 
 
-EVIDENCE_GUIDE = """How to read the evidence:
-- affinity: Qloo's 0-1 score for how strongly the partner's audience shares the brand's taste signal.
-- tag:*: taste tags the partner's audience shares with the brand.
-- geo:*: regional taste affinity, i.e. how strongly the partner over-indexes in that region. It is NOT where fans live
-  and NOT a share of the audience. Say "strong regional affinity in Denver (0.92)", never "listeners are located in".
-- demo:*: the share of the partner's audience in the target age band (a real percentage).
-- trend: change in the partner's popularity rank over 6 months (positive = rising)."""
+EVIDENCE_GUIDE = """How to read the evidence (all from Qloo):
+- affinity: Qloo's 0-1 score for how strongly the partner's audience matches the brand's taste signal. rank = position in this shortlist.
+- taste:*: Qloo's taste tags for the partner's audience (what those fans are into). The brand itself has no tags, so do NOT
+  call them "shared"; say "their audience is into indie folk", and you may say why that suits the brand.
+- demo:<band>: an age affinity INDEX from -1 to 1 for that band (positive = over-indexes, negative = under-indexes).
+  It is NOT a share or percentage of the audience, and it is the partner's overall profile, NOT specific to the market.
+  Say "over-indexes with 25-29 year olds (+0.70)", never "70% of listeners" or "in London it over-indexes".
+- market: the ranking (affinity) was computed with a location signal for this market."""
 
 CLAIMS_SYSTEM = """You explain why a sponsorship partner fits a brand, using ONLY the evidence given.
 Return JSON: {"claims": [{"text": "...", "evidence_ids": ["<key from evidence>"]}]}.
@@ -199,14 +200,10 @@ Don't claim personal experience you can't know (e.g. "I've been enjoying your po
 
 def supportive_evidence(card: dict) -> dict:
     """The subset of a card's evidence that argues FOR the partnership. The card shows everything; a pitch shouldn't
-    sell a 0.5% age share or a falling trend."""
+    sell an under-indexed age band."""
     keep = {}
     for k, v in card["evidence"].items():
-        if k.startswith("demo:") and v["value"] < 0.15:
-            continue
-        if k == "trend" and v["value"] <= 0:
-            continue
-        if k.startswith("geo:") and v.get("affinity", 0) < 0.5:
+        if k.startswith("demo:") and v["value"] < 0.2:  # only clear over-indexing is a selling point
             continue
         keep[k] = v
     return keep

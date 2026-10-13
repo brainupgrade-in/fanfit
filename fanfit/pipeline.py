@@ -4,10 +4,10 @@ Response parsing lives here only, so confirming field names against live Qloo to
 """
 from __future__ import annotations
 
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
-from datetime import date, timedelta
 
-from fanfit.qloo import AGE_BANDS, GENDERS, TEXT_MAX, QlooClient, QlooUnavailable
+from fanfit.qloo import AGE_BANDS, GENDERS, TEXT_MAX, QlooBadRequest, QlooClient, QlooUnavailable
 
 PARTNER_TYPES = {"artist", "podcast", "tv_show", "person"}
 MAX_CARDS = 8
@@ -97,63 +97,55 @@ def _signal(res: Resolution, brief: Brief) -> dict:
         p["signal.demographics.age"] = brief.age
     if brief.gender:
         p["signal.demographics.gender"] = brief.gender
+    if brief.market:
+        p["signal.location.query"] = brief.market  # live check: re-ranks partners for that market
     return p
 
 
+# Qloo tags that say nothing about taste (live data, 2026-10-13).
+_GENERIC_TAGS = {"podcasts", "podcast", "music", "tv", "television", "person", "people"}
+
+
+def _taste_tags(e: dict, n: int = 6) -> list[dict]:
+    out, seen = [], set()
+    for t in e.get("tags", []):
+        name = (t.get("name") or "").strip()
+        if not t.get("id") or len(name) < 3 or name.isdigit() or name.lower() in _GENERIC_TAGS or name.lower() in seen:
+            continue
+        seen.add(name.lower())
+        out.append({"id": t["id"], "name": name})
+    return out[:n]
+
+
 def find_partners(qloo: QlooClient, res: Resolution, brief: Brief, ptype: str, take: int = 20) -> list[dict]:
-    params = {"filter.type": f"urn:entity:{ptype}", **_signal(res, brief), "feature.explainability": True, "take": take}
-    out = []
-    for e in qloo.get("/v2/insights", params).get("results", {}).get("entities", []):
-        shared = ((e.get("query") or {}).get("explainability") or {}).get("signal.interests.tags", [])
-        out.append({
-            **_entity(e),
-            "type": f"urn:entity:{ptype}",
-            "affinity": _affinity(e),
-            "popularity": e.get("popularity"),
-            "shared_tags": [{"id": t.get("tag_id") or t.get("id"), "name": t["name"]} for t in shared],
-            "tags": [{"id": t["id"], "name": t["name"]} for t in e.get("tags", [])],
-        })
-    return out
-
-
-def audience_geo(qloo: QlooClient, entity_id: str, market: str | None, take: int = 5) -> list[dict]:
-    p = {"filter.type": "urn:heatmap", "signal.interests.entities": [entity_id], "take": take}
-    if market:
-        p["filter.location.query"] = market
-    rows = qloo.get("/v2/insights", p).get("results", {}).get("heatmap", [])
-    rows = sorted(rows, key=lambda r: -(r.get("query") or {}).get("affinity", 0))
-    return [{"region": r["location"].get("name") or r["location"].get("geohash"), "affinity": r["query"]["affinity"]} for r in rows[:take]]
+    params = {"filter.type": f"urn:entity:{ptype}", **_signal(res, brief), "take": take}
+    return [{
+        **_entity(e),
+        "type": f"urn:entity:{ptype}",
+        "affinity": _affinity(e),
+        "popularity": e.get("popularity"),
+        "tags": _taste_tags(e),
+    } for e in qloo.get("/v2/insights", params).get("results", {}).get("entities", [])]
 
 
 def audience_demographics(qloo: QlooClient, entity_id: str) -> dict:
+    """{"age": {band: index}, "gender": {...}}. Indices run -1..1 (over/under-indexing), NOT audience shares."""
     rows = qloo.get("/v2/insights", {"filter.type": "urn:demographics", "signal.interests.entities": [entity_id]}).get("results", {}).get("demographics", [])
     return (rows[0].get("query") or {}) if rows else {}
 
 
-def trend(qloo: QlooClient, entity_id: str, etype: str, today: date | None = None) -> list[dict]:
-    today = today or date.today()
-    p = {
-        "filter.type": etype,
-        "signal.interests.entities": [entity_id],
-        "filter.start_date": (today - timedelta(days=180)).isoformat(),
-        "filter.end_date": today.isoformat(),
-    }
-    return qloo.get("/v2/trending", p).get("results", {}).get("trending", [])
-
-
-def build_card(rank: int, c: dict, brief: Brief, geo: list[dict], demo: dict, trend_pts: list[dict]) -> dict:
+def build_card(rank: int, c: dict, brief: Brief, demo: dict) -> dict:
     """Every fact on the card is keyed by an evidence id; claims may only cite these keys."""
-    ev = {"affinity": {"label": "Qloo affinity", "value": c["affinity"], "rank": rank}}
-    for t in c["shared_tags"]:
-        ev[f"tag:{t['id']}"] = {"label": "Shared taste tag", "value": t["name"]}
-    for g in geo:
-        ev[f"geo:{g['region']}"] = {"label": "Regional taste affinity (not where fans live)", "value": g["region"], "affinity": g["affinity"]}
+    ev = {"affinity": {"label": "Qloo affinity with the brand's taste signal", "value": c["affinity"], "rank": rank}}
+    for t in c["tags"]:
+        ev[f"taste:{t['id']}"] = {"label": "Qloo taste tag for this partner's audience", "value": t["name"]}
     ages = demo.get("age") or {}
-    if brief.age and brief.age in ages:
-        ev[f"demo:{brief.age}"] = {"label": "Share in target age band", "value": ages[brief.age]}
-    if trend_pts:
-        deltas = [p.get("population_rank_delta", 0) for p in trend_pts]
-        ev["trend"] = {"label": "Rank change, last 6 months", "value": sum(deltas)}
+    band = brief.age if brief.age in ages else (max(ages, key=ages.get) if ages else None)
+    if band:
+        ev[f"demo:{band}"] = {"label": "Age affinity index, -1 to 1 (over/under-indexing, not a share)",
+                              "value": round(ages[band], 2), "band": band, "target": band == brief.age}
+    if brief.market:
+        ev["market"] = {"label": "Ranked with a Qloo location signal for", "value": brief.market}
     return {"rank": rank, "partner": {k: c[k] for k in ("entity_id", "name", "type")}, "affinity": c["affinity"], "evidence": ev, "claims": []}
 
 
@@ -162,27 +154,34 @@ def rank_pool(res: Resolution, brief: Brief, qloo: QlooClient, trace: list[str] 
     brief = brief.clean()
     trace = trace if trace is not None else []
     pool = []
-    for ptype in brief.partner_types:
-        found = find_partners(qloo, res, brief, ptype)
-        trace.append(f"Qloo insights: {len(found)} {ptype} candidates")
-        pool += found
+    with ThreadPoolExecutor(max_workers=len(brief.partner_types)) as ex:
+        for ptype, found in zip(brief.partner_types, ex.map(lambda t: find_partners(qloo, res, brief, t), brief.partner_types)):
+            trace.append(f"Qloo insights: {len(found)} {ptype} candidates")
+            pool += found
     return sorted((c for c in pool if c["affinity"] is not None), key=lambda c: -c["affinity"])
 
 
 def shortlist(res: Resolution, brief: Brief, qloo: QlooClient, trace: list[str] | None = None) -> list[dict]:
     brief = brief.clean()
     trace = trace if trace is not None else []
-    pool = rank_pool(res, brief, qloo, trace)[:MAX_CARDS]
-    cards = []
-    for i, c in enumerate(pool, 1):
-        geo, demo, pts = [], {}, []
-        try:  # optional enrichments: a card still ships with affinity + tags if these fail
-            geo = audience_geo(qloo, c["entity_id"], brief.market)
-            demo = audience_demographics(qloo, c["entity_id"])
-            pts = trend(qloo, c["entity_id"], c["type"])
+    try:
+        pool = rank_pool(res, brief, qloo, trace)[:MAX_CARDS]
+    except QlooBadRequest:
+        if not brief.market:
+            raise
+        trace.append(f"Qloo didn't recognise the market “{brief.market}”, so partners are ranked without a location signal")
+        brief = Brief(**{**brief.__dict__, "market": None})
+        pool = rank_pool(res, brief, qloo, trace)[:MAX_CARDS]
+    def demo_for(c: dict) -> dict:
+        try:  # optional enrichment: a card still ships with affinity + taste tags if this fails
+            return audience_demographics(qloo, c["entity_id"])
         except QlooUnavailable as e:
             trace.append(f"enrichment skipped for {c['name']}: {e}")
-        cards.append(build_card(i, c, brief, geo, demo, pts))
+            return {}
+
+    with ThreadPoolExecutor(max_workers=MAX_CARDS) as ex:
+        demos = list(ex.map(demo_for, pool))
+    cards = [build_card(i, c, brief, d) for i, (c, d) in enumerate(zip(pool, demos), 1)]
     trace.append(f"Built {len(cards)} fit cards")
     return cards
 

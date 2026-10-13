@@ -68,17 +68,12 @@ class FixtureQlooClient:
         score = 0.25 * e["popularity"] + 0.75 * overlap if tags else e["popularity"]
         age = p.get("signal.demographics.age")
         if age and age in e.get("demographics", {}).get("age", {}):
-            score *= 0.7 + 0.6 * e["demographics"]["age"][age]
+            score *= 1 + 0.3 * e["demographics"]["age"][age]  # index in -1..1
         return min(score, 1.0)
 
     def _v2_insights(self, p: dict) -> dict:
         t = p["filter.type"]
         tags, seeds = self._signal(p)
-        if t == "urn:heatmap":
-            e = seeds[0]
-            return {"success": True, "results": {"heatmap": [
-                {"location": {"name": name}, "query": {"affinity": a}} for name, a in e.get("regions", {}).items()
-            ]}}
         if t == "urn:demographics":
             e = seeds[0]
             return {"success": True, "results": {"demographics": [
@@ -86,16 +81,4 @@ class FixtureQlooClient:
             ]}}
         pool = [e for e in self.entities.values() if e["type"] == t and e not in seeds]
         scored = sorted(((self._affinity(e, tags, p), e) for e in pool), key=lambda x: -x[0])
-        out = []
-        for a, e in scored[: p.get("take", 20)]:
-            item = self._entity_out(e, a)
-            if p.get("feature.explainability") == "true" and tags:
-                item["query"]["explainability"] = {
-                    "signal.interests.tags": [{"tag_id": tid, "name": self.tags[tid]["name"]} for tid in sorted(tags & set(e["tags"]))]
-                }
-            out.append(item)
-        return {"success": True, "results": {"entities": out}}
-
-    def _v2_trending(self, p: dict) -> dict:
-        _, seeds = self._signal(p)
-        return {"success": True, "results": {"trending": seeds[0].get("trend", []) if seeds else []}}
+        return {"success": True, "results": {"entities": [self._entity_out(e, a) for a, e in scored[: p.get("take", 20)]]}}

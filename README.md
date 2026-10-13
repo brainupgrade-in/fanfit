@@ -92,7 +92,7 @@ uv run python -m fanfit --text "your brief"  # CLI with the free-text agent (nee
 | `QLOO_MODE` | `fixture` (default: fictional data in `fixtures/world.json`) · `live` (needs `QLOO_API_KEY`, caches to `QLOO_CACHE_DIR`) · `replay` (cache only) |
 | `QLOO_API_KEY` | Hackathon Qloo key (server-side only) |
 | `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` | Any OpenAI-compatible endpoint. Without them, the app runs with evidence-only cards |
-| `RATE_PER_IP_HOUR`, `RATE_GLOBAL_DAY` | Demo limits (default 20 and 500) |
+| `RATE_PER_IP_HOUR`, `RATE_GLOBAL_DAY` | Demo limits (default 20 and 150). Qloo allows 10,000 calls/month; a fresh brief costs about 15, a cached preset 0 |
 
 Deploy (k3s on an arm64 host, no registry): `APP_HOST=<host> deploy/deploy.sh`. It builds on the host, imports into containerd, and applies `deploy/k8s/fanfit.yaml`.
 

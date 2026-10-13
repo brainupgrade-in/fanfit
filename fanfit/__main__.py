@@ -9,9 +9,9 @@ from dataclasses import asdict
 
 from dotenv import load_dotenv
 
-from fanfit.agent import OpenAICompatLLM, resolve_with_agent, write_claims
+from fanfit.agent import OpenAICompatLLM, add_claims, resolve_with_agent
 from fanfit.pipeline import resolve, shortlist
-from fanfit.presets import PRESETS
+from fanfit.presets import presets_for
 from fanfit.qloo import make_client
 
 
@@ -19,7 +19,7 @@ def main() -> int:
     load_dotenv()
     ap = argparse.ArgumentParser(prog="fanfit")
     g = ap.add_mutually_exclusive_group(required=True)
-    g.add_argument("--preset", choices=sorted(PRESETS))
+    g.add_argument("--preset")
     g.add_argument("--text")
     args = ap.parse_args()
 
@@ -31,16 +31,17 @@ def main() -> int:
             sys.exit("--text needs LLM_BASE_URL, LLM_API_KEY and LLM_MODEL")
         brief, res = resolve_with_agent(args.text, qloo, llm, trace)
     else:
-        brief = PRESETS[args.preset]["brief"]
+        presets = presets_for(qloo.mode)
+        if args.preset not in presets:
+            sys.exit(f"unknown preset for {qloo.mode} mode; choose from: {', '.join(presets)}")
+        brief = presets[args.preset]["brief"]
         res = resolve(brief, qloo)
     if not res.brand and not res.tags:
         print(json.dumps({"error": "brief did not resolve", "unresolved": res.unresolved, "trace": trace}, indent=2))
         return 1
     cards = shortlist(res, brief, qloo, trace)
     if llm:
-        label = res.brand["name"] if res.brand else ", ".join(t["name"] for t in res.tags)
-        for c in cards:
-            c["claims"] = write_claims(c, cards, label, llm)
+        add_claims(cards, res.brand["name"] if res.brand else ", ".join(t["name"] for t in res.tags), llm)
     print(json.dumps({"brief": asdict(brief.clean()), "resolution": asdict(res), "cards": cards, "trace": trace}, indent=2))
     return 0
 

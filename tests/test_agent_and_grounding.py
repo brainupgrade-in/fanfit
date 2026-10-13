@@ -58,13 +58,13 @@ def _cards():
 def test_validator_keeps_only_grounded_claims():
     cards = _cards()
     card = cards[0]
-    tag_key = next(k for k in card["evidence"] if k.startswith("tag:"))
+    tag_key = next(k for k in card["evidence"] if k.startswith("taste:"))
     other = cards[1]["partner"]["name"]
     claims = [
         {"text": "Strong Qloo affinity (0.42) with the brand.", "evidence_ids": ["affinity"]},
         {"text": f"Fans share a taste for {card['evidence'][tag_key]['value']}.", "evidence_ids": [tag_key]},
         {"text": "No evidence cited.", "evidence_ids": []},
-        {"text": "Cites a key not on the card.", "evidence_ids": ["tag:urn:tag:invented"]},
+        {"text": "Cites a key not on the card.", "evidence_ids": ["taste:urn:tag:invented"]},
         {"text": f"Also great alongside {other}.", "evidence_ids": ["affinity"]},
     ]
     from fanfit.grounding import foreign_names_for
@@ -113,17 +113,23 @@ def test_add_claims_runs_every_card_and_reports_llm_failure():
     assert all(c["claims"] == [] for c in cards)
 
 
-def test_regional_affinity_is_not_described_as_where_fans_live():
+def test_age_index_is_not_described_as_a_share():
     cards = _cards()
     card = cards[0]
-    geo = next(k for k in card["evidence"] if k.startswith("geo:"))
-    region = card["evidence"][geo]["value"]
+    demo = next(k for k in card["evidence"] if k.startswith("demo:"))
     from fanfit.grounding import foreign_names_for
 
     claims = [
-        {"text": f"A large portion of listeners are located in {region} (0.92).", "evidence_ids": [geo]},
-        {"text": f"Most fans live in {region}.", "evidence_ids": [geo]},
-        {"text": f"Qloo shows strong taste affinity in {region} (0.92).", "evidence_ids": [geo]},
+        {"text": "70% of its listeners are 25-29.", "evidence_ids": [demo]},
+        {"text": "Most of its audience is in the target band.", "evidence_ids": [demo]},
+        {"text": "It over-indexes with 25-29 year olds (+0.70).", "evidence_ids": [demo]},
     ]
     kept = validate_claims(card, claims, foreign_names_for(card, cards))
     assert [c["text"] for c in kept] == [claims[2]["text"]]
+
+
+def test_foreign_names_match_whole_words_only():
+    card = {"partner": {"name": "A"}, "evidence": {"affinity": {"value": 0.5}}}
+    kept = validate_claims(card, [{"text": "A popular pick (0.50).", "evidence_ids": ["affinity"]},
+                                  {"text": "Better than Pop fans think.", "evidence_ids": ["affinity"]}], {"Pop"})
+    assert [c["text"] for c in kept] == ["A popular pick (0.50)."]

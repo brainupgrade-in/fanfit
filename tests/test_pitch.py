@@ -26,12 +26,12 @@ class PitchLLM:
 def test_pitch_keeps_only_grounded_points_and_clean_framing():
     cs = cards()
     card, other = cs[0], cs[1]["partner"]["name"]
-    tag = next(k for k in card["evidence"] if k.startswith("tag:"))
+    tag = next(k for k in card["evidence"] if k.startswith("taste:"))
     llm = PitchLLM({
         "subject": f"Partnership idea: Northbound Cold Brew x {card['partner']['name']}",
         "opening": f"Hi {card['partner']['name']} team, we love what you do.",
         "points": [
-            {"text": f"Your audience shares our fans' taste for {card['evidence'][tag]['value']}.", "evidence_ids": [tag]},
+            {"text": f"Your audience is into {card['evidence'][tag]['value']}.", "evidence_ids": [tag]},
             {"text": "Invented stat: 90% overlap.", "evidence_ids": []},
             {"text": f"Like {other}, you'd be great.", "evidence_ids": ["affinity"]},
         ],
@@ -76,13 +76,10 @@ def test_pitch_only_sees_supportive_evidence():
 
     ev = {
         "affinity": {"value": 0.3},
-        "tag:a": {"value": "trail running"},
-        "demo:30_to_34": {"value": 0.005},
-        "geo:Portland": {"value": "Portland", "affinity": 0.88},
-        "geo:Miami": {"value": "Miami", "affinity": 0.12},
-        "trend": {"value": -8},
+        "taste:a": {"value": "trail running"},
+        "demo:30_to_34": {"value": -0.4},
+        "market": {"value": "Denver"},
     }
-    assert set(supportive_evidence({"evidence": ev})) == {"affinity", "tag:a", "geo:Portland"}
-    ev["demo:30_to_34"]["value"] = 0.29
-    ev["trend"]["value"] = 12
-    assert {"demo:30_to_34", "trend"} <= set(supportive_evidence({"evidence": ev}))
+    assert set(supportive_evidence({"evidence": ev})) == {"affinity", "taste:a", "market"}
+    ev["demo:30_to_34"]["value"] = 0.45
+    assert "demo:30_to_34" in supportive_evidence({"evidence": ev})

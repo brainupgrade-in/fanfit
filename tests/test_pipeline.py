@@ -14,7 +14,8 @@ def test_every_preset_resolves_and_yields_ranked_cards():
         affs = [c["affinity"] for c in cards]
         assert affs == sorted(affs, reverse=True)
         assert all("affinity" in c["evidence"] for c in cards)
-        assert any(k.startswith("tag:") for c in cards for k in c["evidence"]), key
+        assert any(k.startswith("taste:") for c in cards for k in c["evidence"]), key
+        assert all(any(k.startswith("demo:") for k in c["evidence"]) for c in cards), key
 
 
 def test_brand_signal_changes_ranking_vs_no_signal():
@@ -49,11 +50,35 @@ def test_brief_clean_clamps_long_text_and_bad_enums():
 def test_enrichment_failure_still_ships_cards():
     class Flaky(FixtureQlooClient):
         def get(self, path, params):
-            if params.get("filter.type") in ("urn:heatmap", "urn:demographics"):
+            if params.get("filter.type") == "urn:demographics":
                 raise QlooUnavailable("429")
             return super().get(path, params)
 
     q, b, trace = Flaky(), PRESETS["tour"]["brief"], []
     cards = shortlist(resolve(b, q), b, q, trace)
-    assert cards and not any(k.startswith("geo:") for c in cards for k in c["evidence"])
+    assert cards and not any(k.startswith("demo:") for c in cards for k in c["evidence"])
     assert any("enrichment skipped" in t for t in trace)
+
+
+def test_market_becomes_a_location_signal():
+    q = FixtureQlooClient()
+    b = PRESETS["cold-brew"]["brief"]
+    shortlist(resolve(b, q), b, q)
+    insights = [p for path, p in q.calls if path == "/v2/insights" and p["filter.type"].startswith("urn:entity:")]
+    assert insights and all(p.get("signal.location.query") == b.market for p in insights)
+
+
+def test_unknown_market_falls_back_to_unlocalised_ranking():
+    from fanfit.qloo import QlooBadRequest
+
+    class NoMarket(FixtureQlooClient):
+        def get(self, path, params):
+            if "signal.location.query" in params:
+                raise QlooBadRequest("at least one valid signal is required")
+            return super().get(path, params)
+
+    q, trace = NoMarket(), []
+    b = Brief(brand="Northbound Cold Brew", market="Londn", partner_types=["artist"])
+    cards = shortlist(resolve(b, q), b, q, trace)
+    assert cards and not any("market" in c["evidence"] for c in cards)
+    assert any("Londn" in t for t in trace)
