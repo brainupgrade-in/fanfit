@@ -12,7 +12,7 @@ Sponsorship partners whose fans already love your brand. An agent ranks artists,
 
 ## Links
 - **Live demo (no login):** https://agenticai-fanfit.brainupgrade.in
-- **Code:** [TODO: public GitHub URL]
+- **Code:** https://github.com/brainupgrade-in/fanfit
 
 ## Inspiration
 Sponsorship is a huge market, and partners are still chosen mostly by follower counts. Reach tells you how many people will see your logo, not whether they'll care. We asked an LLM "which podcasts should sponsor our hot sauce?" and got the same stereotypes you'd guess yourself. That's the gap Qloo's taste graph fills: it knows what audiences actually love, across music, podcasts, TV and brands.
