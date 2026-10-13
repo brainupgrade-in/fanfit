@@ -14,8 +14,13 @@ Sponsorship partners whose fans already love your brand. An agent ranks artists,
 - **Live demo (no login):** https://agenticai-fanfit.brainupgrade.in
 - **Code:** https://github.com/brainupgrade-in/fanfit
 
+## In 30 seconds
+- **Who it's for:** brand partnership teams choosing which tour, festival stage, podcast or creator to sponsor.
+- **The result:** across 10 real brands, only **3 of the 72 partners a plain LLM suggested made FanFit's top 8** by Qloo taste affinity. On Patagonia's tour brief, none did.
+- **Try it:** https://agenticai-fanfit.brainupgrade.in (no login): click an example, results stream in about 10 s. **Watch:** [VIDEO-URL] (2 min).
+
 ## Inspiration
-Sponsorship is a huge market, and partners are still chosen mostly by follower counts. Reach tells you how many people will see your logo, not whether they'll care. We asked an LLM "which podcasts should sponsor our hot sauce?" and got the same stereotypes you'd guess yourself. That's the gap Qloo's taste graph fills: it knows what audiences actually love, across music, podcasts, TV and brands.
+Sponsorship is a huge market, from tours and festival stages to podcasts and creators, and partners are still chosen mostly by follower counts. Reach tells you how many people will see your logo, not whether they'll care. We asked an LLM "which podcasts should sponsor our hot sauce?" and got the same stereotypes you'd guess yourself. That's the gap Qloo's taste graph fills: it knows what audiences actually love, across music, podcasts, TV and brands.
 
 ## What it does
 - **Brief → agent → Qloo entities.** Describe a campaign in plain English. A Nemotron agent looks up the brand and 1–3 taste words in Qloo with tools, retries short variants when a search misses, and can only use IDs Qloo returned. You confirm the entities before anything is ranked.
@@ -26,7 +31,7 @@ Sponsorship is a huge market, and partners are still chosen mostly by follower c
   - whether the ranking used your target market as a location signal.
 - **Grounded "why this fit."** Every AI-written line cites the card evidence it rests on, and a validator removes anything that doesn't. Hover a citation to see the exact data behind it.
 - **One-click outreach email.** It's built only from evidence that supports the deal, with every fact cited.
-- **"Would AI alone get this right?"** The same brief and the same model, without Qloo. FanFit checks each of the AI's picks against Qloo and shows where Qloo ranks them, plus the partners only FanFit found. On our three live presets, **none of the AI's 18 picks made FanFit's top 8**. For Patagonia's tour, the AI picked The Lumineers (Qloo rank #13 for the brief) and Maggie Rogers (#15). Qloo's top picks were Houndmouth, Caamp and Mt. Joy, whose audiences over-index on Patagonia and with 30–34 year olds.
+- **"Would AI alone get this right?"** The same brief and the same model, without Qloo. FanFit checks each of the AI's picks against Qloo and shows where Qloo ranks them, plus the partners only FanFit found. Across our 10 live examples (saved runs, 13 Oct 2026), **only 3 of the AI's 72 picks made FanFit's top 8**. For Patagonia's tour, none did: the AI picked The Lumineers (Qloo rank #13 for the brief) and Maggie Rogers (#15). Qloo's top picks were Houndmouth, Caamp and Mt. Joy, whose audiences over-index on Patagonia and with 30–34 year olds.
 
 ## How we built it
 - **Qloo:**
@@ -40,7 +45,7 @@ Sponsorship is a huge market, and partners are still chosen mostly by follower c
   - "strong", "high" or "top" without a quoted value;
   - the age affinity index turned into a percentage of the audience.
 - **Backend:** FastAPI streams the agent's steps live to the page (NDJSON). Qloo access goes through one client with three modes: fixture, live with a disk cache, and replay, so the demo survives after the key expires. A parameter allowlist means nothing the user types reaches Qloo verbatim.
-- **Hosting:** k3s on an NVIDIA DGX Spark behind a Cloudflare tunnel. Plain HTML/JS with no framework. 50 tests.
+- **Hosting:** k3s on an NVIDIA DGX Spark behind a Cloudflare tunnel. Plain HTML/JS with no framework. 55 tests.
 
 ## Challenges we ran into
 - **Keeping an LLM honest about data.** The model happily turned a regional affinity score into "a large portion of listeners live in Denver", and pitched weak evidence as a strength. Prompting alone didn't fix it; a validator with explicit rules and passing only supportive evidence to the pitch writer did.
@@ -71,4 +76,4 @@ Open the demo URL; no login. Click any example on the left; results stream in ab
 - click **Draft outreach email** on a card;
 - scroll down and click **Compare with AI alone**.
 
-Or type your own brief in "Describe it". The demo runs on live Qloo data; if the hackathon key is deactivated before judging ends, the three examples are served from cached Qloo responses (a banner says so).
+Or type your own brief in "Describe it". The demo runs on live Qloo data. If the hackathon key is deactivated before judging ends, all 10 examples are served from cached Qloo responses, typed briefs are switched off, and a banner says so.

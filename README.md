@@ -4,7 +4,9 @@
 
 Live demo: **https://agenticai-fanfit.brainupgrade.in** (no login) · Built for the [Qloo Agentic Hackathon](https://qloo.devpost.com/)
 
-> Runs on **live Qloo data** (hackathon API). The three examples on the page are real brands: Patagonia, Glossier, Oatly.
+> Runs on **live Qloo data** (hackathon API). The ten examples on the page are real brands: Patagonia, Glossier, Oatly and seven more.
+>
+> **Across those 10 brands, only 3 of the AI's 72 picks (same model, no Qloo) made FanFit's top 8** (saved runs, 13 Oct 2026).
 
 ![FanFit ranking artists for a Patagonia tour sponsorship by live Qloo taste affinity, with an evidence card per partner](docs/screenshots/1-shortlist.png)
 
@@ -24,7 +26,7 @@ Brands pick sponsorship partners (artists, podcasts, shows, creators) mostly by 
    - the market the ranking was computed for.
 5. **"Why this fit" lines** are written by an LLM but **each one cites the evidence it rests on**. A validator drops any line that cites nothing, cites evidence not on the card, or names another card's partner or tags. It also drops any line that says "strong", "high" or "top" without quoting the value, or that turns the age index into a percentage of the audience. A line that names the target market may cite only the ranking evidence (affinity and market), because the age and taste data describe the partner's whole audience, not that city. Raw scores are rounded to 2 decimals, as on the card. Hovering a citation highlights that evidence.
 6. **"Draft outreach email"** writes a pitch to the partner. Every fact in the email is an evidence-cited point, and it only uses evidence that argues *for* the deal (an under-indexed age band is never sold as a strength).
-7. **"Would AI alone get this right?"** runs the same brief through the same model with no Qloo access. It then checks each of its picks in Qloo (in FanFit's shortlist / Qloo ranks it low / not a fit / not found) and lists the partners only FanFit found.
+7. **"Would AI alone get this right?"** runs the same brief through the same model with no Qloo access. It then checks each of its picks in Qloo (in FanFit's shortlist / Qloo ranks it low / not a fit / not found) and lists the partners only FanFit found. Across the 10 examples (saved runs, 13 Oct 2026), 3 of the AI's 72 picks made FanFit's top 8; on Patagonia, none of them did.
 
 | Hover a citation to see its evidence | Outreach email, every fact cited |
 |---|---|
